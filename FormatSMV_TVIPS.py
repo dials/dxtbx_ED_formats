@@ -79,15 +79,7 @@ class FormatSMV_TVIPS(FormatSMVADSC):
     # from the base class. Default to 15, but override for specific datasets
     # based on the processing instructions at
     # https://data.sbgrid.org/dataset/288/.
-    # This is of course very nasty and fragile, but this Format is only being
-    # used to process those datasets, so...
-    image_pedestal = '15'
-    filename = self.get_image_file()
-    if '20160310_sq_10_02' in filename: image_pedestal = '13'
-    if '20160310_sq_05_01' in filename: image_pedestal = '13'
-    if '20160310_sq_09_02' in filename: image_pedestal = '13'
-    if '20160318_sq_15_01' in filename: image_pedestal = '14'
-    if '20160316_sq_07_01' in filename: image_pedestal = '13'
+    image_pedestal = os.environ.get('IMAGE_PEDESTAL', 15')
     self._header_dictionary['IMAGE_PEDESTAL'] = image_pedestal
     return super(FormatSMV_TVIPS, self).get_raw_data()
 
