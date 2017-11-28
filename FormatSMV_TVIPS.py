@@ -76,10 +76,15 @@ class FormatSMV_TVIPS(FormatSMVADSC):
   def get_raw_data(self):
 
     # hack IMAGE_PEDESTAL into the header dictionary, then we can use the method
-    # from the base class. Default to 15, but override for specific datasets
-    # based on the processing instructions at
-    # https://data.sbgrid.org/dataset/288/.
-    image_pedestal = os.environ.get('IMAGE_PEDESTAL', 15')
+    # from the base class. Set this to values for specific datasets based on
+    # the processing instructions at https://data.sbgrid.org/dataset/288/.
+    try:
+      image_pedestal = os.environ['IMAGE_PEDESTAL']
+    except KeyError:
+      from libtbx.utils import Sorry
+      raise Sorry('This format expects an environment variable IMAGE_PEDESTAL '
+          'to be set explicitly (which could be IMAGE_PEDESTAL=0) as the '
+          'required information is not in the image headers ')
     self._header_dictionary['IMAGE_PEDESTAL'] = image_pedestal
     return super(FormatSMV_TVIPS, self).get_raw_data()
 
