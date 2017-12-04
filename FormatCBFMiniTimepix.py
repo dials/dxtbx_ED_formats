@@ -316,7 +316,7 @@ class FormatCBFMiniTimepix1032(FormatCBFMiniTimepix):
                      'ymin_mm': 0})
     pnl_data.append({'xmin':516, 'ymin':0,
                      'xmax':1032, 'ymax':516,
-                     'xmin_mm': (516 + 169.0) * pixel_size[0],
+                     'xmin_mm': (516 + 163.0) * pixel_size[0],
                      'ymin_mm': -3.6969 * pixel_size[1]})
     pnl_data.append({'xmin':0, 'ymin':516,
                      'xmax':516, 'ymax':1032,
@@ -324,7 +324,7 @@ class FormatCBFMiniTimepix1032(FormatCBFMiniTimepix):
                      'ymin_mm': (516 + 35.0) * pixel_size[1]})
     pnl_data.append({'xmin':516, 'ymin':516,
                      'xmax':1032, 'ymax':1032,
-                     'xmin_mm': (516 + 171.866) * pixel_size[0],
+                     'xmin_mm': (516 + 165.866) * pixel_size[0],
                      'ymin_mm': (516 + 32.4545) * pixel_size[1]})
 
     # redefine fast, slow for the local frame
