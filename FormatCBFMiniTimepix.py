@@ -360,7 +360,7 @@ class FormatCBFMiniTimepix1032(FormatCBFMiniTimepix):
         slow.elems,
         origin_panel.elems)
       p.set_raw_image_offset((xmin, ymin))
-      #p.set_gain(3.0) # exact gain
+      p.set_gain(3.0) # exact gain
       self.coords[panel_name] = (xmin, ymin, xmax, ymax)
 
     return d
