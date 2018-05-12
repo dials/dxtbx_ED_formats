@@ -23,7 +23,7 @@ class FormatTimepixRaw512x512(Format):
   of the detector is given in this paper, but this contains an error, which
   is that the gap between tiles is actually designed to be 165 um, not 175 um:
 
-    http://dx.doi.org/10.1107/S2053273315022500
+    https://doi.org/10.1107/S2053273315022500
 
   We have limited information about the raw data format at present. Tim Gruene
   notes:
