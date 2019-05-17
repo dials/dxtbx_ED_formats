@@ -7,24 +7,15 @@ import os
 from scitbx.array_family import flex
 from dxtbx.format.Format import Format
 from dxtbx.model import ScanFactory
+import mrcfile
 
 import logging
 logger = logging.getLogger("dials")
-try:
-  import mrcfile
-  mrc_capable = True
-except ImportError:
-  logger.warning("FormatMRCimages is installed in {0} but its dependency"
-      " mrcfile is not available. Please install mrcfile to use this"
-      " format class ('libtbx.pip install mrcfile')".format(__file__))
-  mrc_capable = False
 
 class FormatMRCimages(Format):
 
   @staticmethod
   def understand(image_file):
-
-    if not mrc_capable: return False
 
     try:
       mrc = mrcfile.mmap(image_file)
