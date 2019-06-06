@@ -31,17 +31,17 @@ import struct  # for struct.error
 
 class FormatTIFFeBIC(Format):
     """An image reading class for TIFF images from a Talos electron microscope
-  at eBIC. We have limited information about the data format at present.
+    at eBIC. We have limited information about the data format at present.
 
-  The header does not contain useful information about the geometry, therefore
-  we will construct dummy objects and expect to override on import using
-  site.phil.
-"""
+    The header does not contain useful information about the geometry, therefore
+    we will construct dummy objects and expect to override on import using
+    site.phil.
+    """
 
     @staticmethod
     def understand(image_file):
         """Check to see if this looks like a TIFF format image of the type seen
-    from a microscope at eBIC."""
+        from a microscope at eBIC."""
 
         try:
             byte_order = tiff_byte_order(image_file)
@@ -129,13 +129,11 @@ class FormatTIFFeBIC(Format):
 
     def __init__(self, image_file, **kwargs):
         """Initialise the image structure from the given file, including a
-    proper model of the experiment."""
+        proper model of the experiment."""
 
         assert self.understand(image_file)
 
         Format.__init__(self, image_file, **kwargs)
-
-        return
 
     def detectorbase_start(self):
         pass
@@ -148,8 +146,6 @@ class FormatTIFFeBIC(Format):
         im = Image.open(self._image_file)
         self._data_offset = im.tag[273][0]
         self._bytes_per_pixel = im.tag[258][0] // 8
-
-        return
 
     def get_raw_data(self):
         """Get the pixel intensities"""
@@ -173,7 +169,7 @@ class FormatTIFFeBIC(Format):
 
     def _goniometer(self):
         """Dummy goniometer, 'vertical' as the images are viewed. Not completely
-    sure about the handedness yet"""
+        sure about the handedness yet"""
 
         return self._goniometer_factory.known_axis((0, -1, 0))
 

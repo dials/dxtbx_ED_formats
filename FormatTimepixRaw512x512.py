@@ -11,7 +11,8 @@
 from a detector with a 2x2 array of Timepix modules, used in electron
 diffraction experiments"""
 
-from __future__ import division
+from __future__ import absolute_import, division, print_function
+
 import os
 
 from dxtbx.format.Format import Format
@@ -21,36 +22,36 @@ from dxtbx.model.detector import Detector
 
 class FormatTimepixRaw512x512(Format):
     """An image reading class for Timepix raw format images. A description
-  of the detector is given in this paper, but this contains an error, which
-  is that the gap between tiles is actually designed to be 165 um, not 175 um:
+    of the detector is given in this paper, but this contains an error, which
+    is that the gap between tiles is actually designed to be 165 um, not 175 um:
 
-    https://doi.org/10.1107/S2053273315022500
+      https://doi.org/10.1107/S2053273315022500
 
-  We have limited information about the raw data format at present. Tim Gruene
-  notes:
+    We have limited information about the raw data format at present. Tim Gruene
+    notes:
 
-    The Timepix 'bin' format can be displayed with adxv -swab -nx 512 -ny
-    512 -skip 15 -ushort frame_value_1.bin i.e. they have a 15B header,
-    encode 512x512 pixel by unsigned short in little endian.
+      The Timepix 'bin' format can be displayed with adxv -swab -nx 512 -ny
+      512 -skip 15 -ushort frame_value_1.bin i.e. they have a 15B header,
+      encode 512x512 pixel by unsigned short in little endian.
 
-    The inner pixels are 0.055mu x 0.055mu, but the outermost pixel frame is
-    165mu x 165mu. I therefore blank pixels 256 and 257, the cross between
-    the chips.
+      The inner pixels are 0.055mu x 0.055mu, but the outermost pixel frame is
+      165mu x 165mu. I therefore blank pixels 256 and 257, the cross between
+      the chips.
 
-  The header does not contain useful information about the geometry, therefore
-  we will construct dummy objects and expect to override on import using
-  site.phil."""
+    The header does not contain useful information about the geometry, therefore
+    we will construct dummy objects and expect to override on import using
+    site.phil."""
 
     @staticmethod
     def understand(image_file):
         """Check to see if this looks like a Timepix raw format image. Not much
-    to go on here. Let's use the file size and some bytes from the header that
-    appear to be the same in the few datasets we've seen."""
+        to go on here. Let's use the file size and some bytes from the header that
+        appear to be the same in the few datasets we've seen."""
 
         with open(image_file, "rb") as f:
-            header = f.read(15)
             if os.fstat(f.fileno()).st_size != 524303:
                 return False
+            header = f.read(15)
 
         fingerprint = header[0] + header[2:8] + header[10:]
         if fingerprint != "\x00\x00\x0b\x03\x02\x02\x00\x00\x00\x00\x02\x00":
@@ -68,8 +69,6 @@ class FormatTimepixRaw512x512(Format):
         self._header_bytes = FormatTimepixRaw512x512.open_file(
             self._image_file, "rb"
         ).read(self._header_size)
-
-        return
 
     def get_raw_data(self):
         """Get the pixel intensities"""

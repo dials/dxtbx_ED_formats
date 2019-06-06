@@ -10,7 +10,8 @@
 """Experimental implementation of a format class to recognise raw images
 from an FEI Falcon II detector"""
 
-from __future__ import division
+from __future__ import absolute_import, division, print_function
+
 import os
 
 from dxtbx.format.Format import Format
@@ -22,16 +23,16 @@ class FormatFalconIIRaw(Format):
     @staticmethod
     def understand(image_file):
         """Check to see if this looks like a Falcon II raw format image. Not much
-    to go on here. We use the file size and common bytes from the header that
-    appear to be the same for all the images. Note, this appears to be for
-    2x2 binning, as there are really 4096^2 pixels, but these images have
-    2048^2"""
+        to go on here. We use the file size and common bytes from the header that
+        appear to be the same for all the images. Note, this appears to be for
+        2x2 binning, as there are really 4096^2 pixels, but these images have
+        2048^2"""
 
         with open(image_file, "rb") as f:
-            header = f.read(177)
-            data = f.read()
             if os.fstat(f.fileno()).st_size != 8388785:
                 return False
+            header = f.read(177)
+            data = f.read()
 
         if header != (
             "FEI RawImage\x00\x01\x00\x00\x00\x00\x08\x00\x00\x00\x08"
@@ -53,8 +54,6 @@ class FormatFalconIIRaw(Format):
             self._header_size
         )
 
-        return
-
     def get_raw_data(self):
         """Get the pixel intensities"""
 
@@ -73,7 +72,7 @@ class FormatFalconIIRaw(Format):
 
     def _goniometer(self):
         """Dummy goniometer, 'vertical' as the images are viewed. Not completely
-    sure about the handedness yet"""
+        sure about the handedness yet"""
 
         return self._goniometer_factory.known_axis((0, -1, 0))
 

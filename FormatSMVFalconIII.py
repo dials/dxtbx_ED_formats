@@ -4,8 +4,8 @@ metadata. We want to override the beam model to produce an unpolarised beam
 and to set the detector gain to something sensible"""
 
 from __future__ import absolute_import, division, print_function
-from dxtbx.format.FormatSMVADSC import FormatSMVADSC
 
+from dxtbx.format.FormatSMVADSC import FormatSMVADSC
 
 class FormatSMVFalconIII(FormatSMVADSC):
     """We inherit from FormatSMVADSC rather than the base FormatSMV, because the
@@ -24,7 +24,6 @@ class FormatSMVFalconIII(FormatSMVADSC):
         return False
 
     def _detector(self):
-
         d = super(FormatSMVFalconIII, self)._detector()
 
         # Set gain. Detector is used in integrating mode. In a single frame the
@@ -49,7 +48,6 @@ class FormatSMVFalconIII(FormatSMVADSC):
 
 
 if __name__ == "__main__":
-
     import sys
 
     for arg in sys.argv[1:]:

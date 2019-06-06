@@ -14,16 +14,18 @@ at https://data.sbgrid.org/dataset/288/, but could be adapted for other
 datasets produced in a similar manner."""
 
 from __future__ import absolute_import, division, print_function
-import time
+
 import os
+import time
+
 from dxtbx.format.FormatSMVADSC import FormatSMVADSC
 from dxtbx.model.detector import Detector
 
 
 class FormatSMV_TVIPS(FormatSMVADSC):
     """TVIPS TemCam-F416 images converted to SMV externally. We have to inherit
-  from FormatSMVADSC rather than FormatSMV, as FormatSMVADSC is promiscuous and
-  recognises most SMV files"""
+    from FormatSMVADSC rather than FormatSMV, as FormatSMVADSC is promiscuous and
+    recognises most SMV files"""
 
     @staticmethod
     def understand(image_file):
@@ -76,7 +78,6 @@ class FormatSMV_TVIPS(FormatSMVADSC):
         return True
 
     def _detector(self):
-
         pixel_size = 0.0311999992, 0.0311999992
         image_size = 2048, 2048
         trusted_range = (-2, 65535)

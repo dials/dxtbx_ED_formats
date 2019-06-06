@@ -9,6 +9,7 @@
 #
 
 from __future__ import absolute_import, division, print_function
+
 import os
 
 from dxtbx.format.FormatCBF import FormatCBF
@@ -22,13 +23,13 @@ else:
 
 class FormatCBFGatanOneView(FormatCBF):
     """Work-in-progress image reading class for CBF format images with a
-  minimal header from an electron microscope with a Gatan OneView detector
-  at RIKEN SPring-8. Largely based upon FormatCBFMini.py"""
+    minimal header from an electron microscope with a Gatan OneView detector
+    at RIKEN SPring-8. Largely based upon FormatCBFMini.py"""
 
     @staticmethod
     def understand(image_file):
         """Check to see if this looks like an CBF format image, i.e. we can
-    make sense of it."""
+        make sense of it."""
 
         header = FormatCBF.get_cbf_header(image_file)
 
@@ -56,13 +57,11 @@ class FormatCBFGatanOneView(FormatCBF):
 
         self._raw_data = None
 
-        return
-
     def _start(self):
         """Read the image header and copy it into a dictionary for future reference.
 
-    In this case the header is useless, so we populate the dictionary manually
-    with dummy values"""
+        In this case the header is useless, so we populate the dictionary manually
+        with dummy values"""
 
         FormatCBF._start(self)
         self._cif_header_dictionary = {}
@@ -74,8 +73,6 @@ class FormatCBFGatanOneView(FormatCBF):
         self._cif_header_dictionary["X-Binary-Size-Second-Dimension"] = "2048"
         self._cif_header_dictionary["Count_cutoff"] = "65535 counts"
         self._cif_header_dictionary["Phi"] = "0.0000 deg."
-
-        return
 
     def _detector(self):
         """Return a dummy model for the detector"""

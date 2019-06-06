@@ -7,16 +7,17 @@
 # against the use of this format by mistake
 
 from __future__ import absolute_import, division, print_function
+
 import os
-from dxtbx.format.FormatSEReBIC import FormatSEReBIC
 import logging
+
+from dxtbx.format.FormatSEReBIC import FormatSEReBIC
 
 logger = logging.getLogger("dials")
 
 
 class FormatSEReBICpedestal(FormatSEReBIC):
     def __init__(self, image_file, **kwargs):
-
         from dxtbx import IncorrectFormatError
 
         if not self.understand(image_file):
@@ -30,7 +31,6 @@ class FormatSEReBICpedestal(FormatSEReBIC):
         )
 
     def get_raw_data(self, index):
-
         raw_data = super(FormatSEReBICpedestal, self).get_raw_data(index).as_double()
         raw_data += self.pedestal
         return raw_data

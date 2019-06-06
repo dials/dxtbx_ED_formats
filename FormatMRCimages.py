@@ -3,13 +3,13 @@ used in electron microscopy (http://www.ccpem.ac.uk/mrc_format/mrc2014.php)"""
 
 from __future__ import absolute_import, division, print_function
 
+import logging
 import os
+
 from scitbx.array_family import flex
 from dxtbx.format.Format import Format
 from dxtbx.model import ScanFactory
 import mrcfile
-
-import logging
 
 logger = logging.getLogger("dials")
 
@@ -17,7 +17,6 @@ logger = logging.getLogger("dials")
 class FormatMRCimages(Format):
     @staticmethod
     def understand(image_file):
-
         try:
             mrc = mrcfile.mmap(image_file)
         except ValueError:
@@ -26,7 +25,6 @@ class FormatMRCimages(Format):
         return not mrc.is_image_stack()
 
     def __init__(self, image_file, **kwargs):
-
         from dxtbx import IncorrectFormatError
 
         if not self.understand(image_file):
@@ -41,11 +39,8 @@ class FormatMRCimages(Format):
             h = mrc.header
         self._header_dictionary = self._unpack_header(h)
 
-        return
-
     @staticmethod
     def _unpack_header(header):
-
         hd = {}
         # What do we need from the header?
         fields = ("nx", "ny", "nz", "mx", "my", "mz")

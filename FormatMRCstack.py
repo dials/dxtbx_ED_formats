@@ -3,12 +3,12 @@ used in electron microscopy (http://www.ccpem.ac.uk/mrc_format/mrc2014.php)"""
 
 from __future__ import absolute_import, division, print_function
 
+import logging
+
 from scitbx.array_family import flex
 from dxtbx.format.Format import Format
 from dxtbx.format.FormatMultiImage import FormatMultiImage
 import mrcfile
-
-import logging
 
 logger = logging.getLogger("dials")
 
@@ -16,7 +16,6 @@ logger = logging.getLogger("dials")
 class FormatMRCstack(FormatMultiImage, Format):
     @staticmethod
     def understand(image_file):
-
         try:
             mrc = mrcfile.mmap(image_file)
         except ValueError:
@@ -25,7 +24,6 @@ class FormatMRCstack(FormatMultiImage, Format):
         return mrc.is_image_stack()
 
     def __init__(self, image_file, **kwargs):
-
         from dxtbx import IncorrectFormatError
 
         if not self.understand(image_file):
@@ -35,17 +33,14 @@ class FormatMRCstack(FormatMultiImage, Format):
 
     def _start(self):
         """Open the MRC file, read the metadata into an internal dictionary
-    self._header_dictionary"""
+        self._header_dictionary"""
 
         with mrcfile.mmap(self._image_file) as mrc:
             h = mrc.header
         self._header_dictionary = self._unpack_header(h)
 
-        return
-
     @staticmethod
     def _unpack_header(header):
-
         hd = {}
         # What do we need from the header?
         fields = ("nx", "ny", "nz", "mx", "my", "mz")
@@ -83,7 +78,6 @@ class FormatMRCstack(FormatMultiImage, Format):
         return Format.get_image_file(self)
 
     def get_raw_data(self, index):
-
         # Use mrcfile to open the dataset and extract slice index from the stack.
         # Note MRC files use z, y, x ordering
         with mrcfile.mmap(self._image_file) as mrc:
