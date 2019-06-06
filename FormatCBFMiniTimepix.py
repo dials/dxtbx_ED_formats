@@ -18,7 +18,7 @@ data array for a moduleis 512*512 pixels and the wide pixels are excluded from
 the active region of the detector. The formats here recognise these cases
 based on the resulting data array size and act accordingly."""
 
-from __future__ import division
+from __future__ import absolute_import, division, print_function
 import os
 
 from dxtbx.format.FormatCBFMini import FormatCBFMini
@@ -370,6 +370,6 @@ if __name__ == '__main__':
   import sys
 
   for arg in sys.argv[1:]:
-    print FormatCBFMiniTimepix.understand(arg)
-    print FormatCBFMiniTimepix512.understand(arg)
-    print FormatCBFMiniTimepix1032.understand(arg)
+    print(FormatCBFMiniTimepix.understand(arg))
+    print(FormatCBFMiniTimepix512.understand(arg))
+    print(FormatCBFMiniTimepix1032.understand(arg))

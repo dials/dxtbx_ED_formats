@@ -13,7 +13,7 @@ This is intended specifically for processing of the Trypsin datasets available
 at https://data.sbgrid.org/dataset/288/, but could be adapted for other
 datasets produced in a similar manner."""
 
-from __future__ import absolute_import, division
+from __future__ import absolute_import, division, print_function
 import time
 import os
 from dxtbx.format.FormatSMVADSC import FormatSMVADSC
@@ -94,4 +94,4 @@ if __name__ == '__main__':
   import sys
 
   for arg in sys.argv[1:]:
-    print FormatSMV_TVIPS.understand(arg)
+    print(FormatSMV_TVIPS.understand(arg))

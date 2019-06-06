@@ -8,7 +8,7 @@
 #  https://github.com/cctbx/cctbx_project/blob/master/dxtbx/license.txt
 #
 
-from __future__ import absolute_import, division
+from __future__ import absolute_import, division, print_function
 import os
 
 from dxtbx.format.FormatCBF import FormatCBF
@@ -198,5 +198,5 @@ if __name__ == '__main__':
   import sys
 
   for arg in sys.argv[1:]:
-    print FormatCBFGatanOneView.understand(arg)
+    print(FormatCBFGatanOneView.understand(arg))
 

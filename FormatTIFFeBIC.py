@@ -11,7 +11,8 @@
 format recorded on a Talos electron microscope at eBIC. This is apparently
 an FEI Ceta 16M detector (https://www.fei.com/accessories/ceta-16m/)."""
 
-from __future__ import division
+from __future__ import absolute_import, division, print_function
+
 import os
 try:
   from PIL import Image
@@ -196,6 +197,6 @@ if __name__ == '__main__':
 
   for arg in sys.argv[1:]:
 
-    print FormatTIFFeBIC.understand(arg)
+    print(FormatTIFFeBIC.understand(arg))
 
 
