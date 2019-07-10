@@ -137,8 +137,11 @@ class FormatMRC(Format):
             pixel_size = 0.028, 0.028
 
         # Dummy values, not stored in the header
-        distance = 2000
+        distance = self._header_dictionary.get('cameraLength', 2) * 1000
+
         trusted_range = (-4, 65535)  # Unsure what is appropriate here
+
+        # Beam centre not in the header - set to the image centre
         beam_centre = [(p * i) / 2 for p, i in zip(pixel_size, image_size)]
         d = self._detector_factory.simple(
             "PAD",
