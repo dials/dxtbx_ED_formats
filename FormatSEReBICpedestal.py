@@ -27,7 +27,7 @@ class FormatSEReBICpedestal(FormatSEReBIC):
         self.pedestal = float(self.pedestal)
         logger.info(
             "WARNING: Using FormatSEReBICpedestal. The value {0} will "
-            "be subtracted from all pixels".format(self.pedestal)
+            "be added to all pixels".format(self.pedestal)
         )
 
     def get_raw_data(self, index):
