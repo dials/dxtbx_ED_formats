@@ -8,6 +8,7 @@ import logging
 import os
 import struct
 from math import sqrt
+from scitbx import matrix
 from scitbx.array_family import flex
 from dxtbx.format.Format import Format
 from dxtbx.model import ScanFactory
@@ -37,6 +38,12 @@ class FormatMRC(Format):
         if h['exttyp'].tostring() == 'FEI1':
             xh = self._read_ext_header(self._image_file)
             self._header_dictionary.update(xh)
+
+        # Add a positive pedestal level to images to avoid negative
+        # pixel values if a value is set by the environment variable
+        # ADD_PEDESTAL. This is a nasty workaround! Suitable values might be
+        # +128 for Ceta and +8 for Falcon III (https://doi.org/10.1101/615484)
+        self.pedestal = float(os.environ.get("ADD_PEDESTAL", 0))
 
     @staticmethod
     def _unpack_header(header):
@@ -118,32 +125,58 @@ class FormatMRC(Format):
         # Use mrcfile to open the dataset and the image.
         # Note MRC files use z, y, x ordering
         with mrcfile.mmap(self._image_file) as mrc:
-            return flex.double(mrc.data.astype("double"))
+            image = flex.double(mrc.data.astype("double"))
+            image += self.pedestal
+            return image
 
     def _goniometer(self):
         """Return a model for a simple single-axis goniometer."""
 
-        return self._goniometer_factory.known_axis((1.0, 0.0, 0.0))
+        direction = matrix.col((0.0, 1.0, 0.0))
+        rot_by_deg = self._header_dictionary.get('tilt_axis', 0.0)
+        direction.rotate(axis=matrix.col((0.0, 0.0, 1.0)),
+            angle=rot_by_deg, deg=True)
+
+        return self._goniometer_factory.known_axis(direction)
 
     def _detector(self):
         """Dummy detector"""
 
         image_size = (self._header_dictionary["nx"], self._header_dictionary["ny"])
 
-        # Pixel sizes for the CETA camera
-        if image_size == (4096, 4096):
-            pixel_size = 0.014, 0.014
-        if image_size == (2048, 2048):
-            pixel_size = 0.028, 0.028
+        # Get pixel size, defaulting to 14 um for the Ceta if unknown
+        physical_pixel = self._header_dictionary.get('physicalPixel', 1.4e-05)
+        binning = self._header_dictionary.get('binning')
+        if binning is None:
+            if image_size == (2048, 2048):
+                binning = 2.0
+            else:
+                binning = 1.0
+        pixel_size = physical_pixel * 1000.0 * binning
+        pixel_size = (pixel_size, pixel_size)
 
-        # Dummy values, not stored in the header
-        distance = self._header_dictionary.get('cameraLength', 2) * 1000
+        # Distance default to 2.0 m if not in the header
+        distance = self._header_dictionary.get('cameraLength', 2.0) * 1000
 
-        trusted_range = (-4, 65535)  # Unsure what is appropriate here
+        # Get detector-specific details for TF detectors as discussed with
+        # Lingbo Yu. Ceta has gain of > 26 and Ceta and Falcon III both saturate
+        # at about 8000.0
+        camera = self._header_dictionary.get('camera', '').lower()
+        if 'ceta' in camera:
+            gain = 26.0
+            saturation = 8000
+        elif 'falcon' in camera:
+            gain = 1.0
+            saturation = 8000
+        else:
+            gain = 1.0
+            saturation = 1e6
+        saturation += self.pedestal
+        trusted_range = (-1, saturation)
 
         # Beam centre not in the header - set to the image centre
         beam_centre = [(p * i) / 2 for p, i in zip(pixel_size, image_size)]
-        d = self._detector_factory.simple(
+        detector = self._detector_factory.simple(
             "PAD",
             distance,
             beam_centre,
@@ -153,27 +186,21 @@ class FormatMRC(Format):
             image_size,
             trusted_range,
         )
-        # Default to gain = 1
-        # for p in d: p.set_gain(8)
-        return d
+
+        for panel in detector: panel.set_gain(gain)
+        return detector
 
     def _beam(self):
-        """Dummy unpolarized beam, energy 200 keV"""
+        """Unpolarized beam model"""
 
-        wavelength = 0.02508
+        # Default to 200 keV
+        wavelength = self._header_dictionary.get('wavelength', 0.02508)
         return self._beam_factory.make_polarized_beam(
             sample_to_source=(0.0, 0.0, 1.0),
             wavelength=wavelength,
             polarization=(0, 1, 0),
             polarization_fraction=0.5,
         )
-
-    def _scan(self):
-        """Dummy scan for this image"""
-
-        fname = os.path.split(self._image_file)[-1]
-        index = int(fname.split("_")[-1].split(".")[0])
-        return ScanFactory.make_scan((index, index), 0.0, (0, 0.5), {index: 0})
 
 class FormatMRCimages(FormatMRC):
 
@@ -189,19 +216,15 @@ class FormatMRCimages(FormatMRC):
             raise IncorrectFormatError(self, image_file)
         Format.__init__(self, image_file, **kwargs)
 
-    def get_raw_data(self):
-
-        # Use mrcfile to open the dataset and the image.
-        # Note MRC files use z, y, x ordering
-        with mrcfile.mmap(self._image_file) as mrc:
-            return flex.double(mrc.data.astype("double"))
-
     def _scan(self):
         """Dummy scan for this image"""
 
+        alpha = self._header_dictionary.get('alphaTilt', 0.0)
+        dalpha = 1.0
+        exposure = self._header_dictionary.get('integrationTime', 0.0)
         fname = os.path.split(self._image_file)[-1]
         index = int(fname.split("_")[-1].split(".")[0])
-        return ScanFactory.make_scan((index, index), 0.0, (0, 0.5), {index: 0})
+        return ScanFactory.make_scan((index, index), exposure, (alpha, dalpha), {index: 0})
 
 class FormatMRCstack(FormatMultiImage, FormatMRC):
 
@@ -246,7 +269,7 @@ class FormatMRCstack(FormatMultiImage, FormatMRC):
         with mrcfile.mmap(self._image_file) as mrc:
             raw_data = mrc.data[index, ...]
 
-        return flex.double(raw_data.astype("double"))
+        return flex.double(raw_data.astype("double")) + self.pedestal
 
     def _scan(self):
         """Dummy scan for this stack"""
@@ -256,7 +279,7 @@ class FormatMRCstack(FormatMultiImage, FormatMRC):
 
         # Dummy values, not known from the header
         exposure_times = 0.0
-        oscillation = (0, 0.5)
+        oscillation = (0, 1.0)
         epochs = [0] * nframes
 
         return self._scan_factory.make_scan(
