@@ -78,7 +78,7 @@ class FormatTIFF_DE(FormatTIFF):
     def _detector(self):
         """Dummy detector"""
 
-        pixel_size = 0.031, 0.031
+        pixel_size = 0.013, 0.013
         image_size = 4096, 4096
         trusted_range = (-1, 65535)
         beam_centre = [(p * i) / 2 for p, i in zip(pixel_size, image_size)]
