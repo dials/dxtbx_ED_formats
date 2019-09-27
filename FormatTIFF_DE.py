@@ -73,7 +73,7 @@ class FormatTIFF_DE(FormatTIFF):
         """Dummy goniometer, 'vertical' as the images are viewed. Not completely
         sure about the handedness yet"""
 
-        return self._goniometer_factory.known_axis((0, -1, 0))
+        return self._goniometer_factory.known_axis((0, 1, 0))
 
     def _detector(self):
         """Dummy detector"""
@@ -85,8 +85,8 @@ class FormatTIFF_DE(FormatTIFF):
         d = self._detector_factory.simple(
             "PAD", 700, beam_centre, "+x", "-y", pixel_size, image_size, trusted_range
         )
-        # Not sure what the gain is
-        # for p in d: p.set_gain(8)
+        # Not sure what the gain should be, but spot-finding works when it is ~70
+        for p in d: p.set_gain(70)
         return d
 
     def _beam(self):
