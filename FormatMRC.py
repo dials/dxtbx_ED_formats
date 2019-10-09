@@ -45,6 +45,11 @@ class FormatMRC(Format):
         # +128 for Ceta and +8 for Falcon III (https://doi.org/10.1101/615484)
         self.pedestal = float(os.environ.get("ADD_PEDESTAL", 0))
 
+        # Set all negative pixel values to zero (after applying the pedestal).
+        # Another nasty hack, while we explore what is the best practice for
+        # images that have negative-valued pixels
+        self.truncate = "TRUNCATE_PIXELS" in os.environ
+
     @staticmethod
     def _unpack_header(header):
         hd = {}
@@ -127,6 +132,10 @@ class FormatMRC(Format):
         with mrcfile.mmap(self._image_file) as mrc:
             image = flex.double(mrc.data.astype("double"))
             image += self.pedestal
+
+            if self.truncate:
+                image.set_selected((image < 0), 0)
+
             return image
 
     def _goniometer(self):
