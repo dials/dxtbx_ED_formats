@@ -107,7 +107,7 @@ class FormatCBFMiniTimepix(FormatCBFMini):
 
     def get_raw_data(self):
 
-        raw_data = self.read_cbf_image(self._image_file)
+        raw_data = self._read_cbf_image()
         raw_data.reshape(flex.grid(self._array_size[1], self._array_size[0]))
 
         self._raw_data = []
