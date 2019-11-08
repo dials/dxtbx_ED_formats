@@ -141,7 +141,7 @@ class FormatMRC(Format):
     def _goniometer(self):
         """Return a model for a simple single-axis goniometer."""
 
-        direction = matrix.col((0.0, 1.0, 0.0))
+        direction = matrix.col((0.0, -1.0, 0.0))
         rot_by_deg = self._header_dictionary.get('tilt_axis', 0.0)
         direction.rotate(axis=matrix.col((0.0, 0.0, 1.0)),
             angle=rot_by_deg, deg=True)
@@ -181,7 +181,7 @@ class FormatMRC(Format):
             gain = 1.0
             saturation = 1e6
         saturation += self.pedestal
-        trusted_range = (-1, saturation)
+        trusted_range = (-1000, saturation)
 
         # Beam centre not in the header - set to the image centre
         beam_centre = [(p * i) / 2 for p, i in zip(pixel_size, image_size)]
