@@ -154,7 +154,7 @@ class FormatMRC(Format):
         image_size = (self._header_dictionary["nx"], self._header_dictionary["ny"])
 
         # Get pixel size, defaulting to 14 um for the Ceta if unknown
-        physical_pixel = self._header_dictionary.get('physicalPixel', 1.4e-05)
+        physical_pixel = self._header_dictionary.get('physicalPixel', 1.4e-5)
         binning = self._header_dictionary.get('binning')
         if binning is None:
             if image_size == (2048, 2048):
@@ -162,10 +162,17 @@ class FormatMRC(Format):
             else:
                 binning = 1.0
         pixel_size = physical_pixel * 1000.0 * binning
-        pixel_size = (pixel_size, pixel_size)
 
-        # Distance default to 2.0 m if not in the header
+        # The best distance measure is calculated from the calibrated pixel
+        # size. If this is not available then default to the nominal camera
+        # length, or finally to 2.0m
         distance = self._header_dictionary.get('cameraLength', 2.0) * 1000
+        try:
+            calibrated_pixel_size = self._header_dictionary['pixelSpacing'] # 1/m
+            wavelength = self._header_dictionary['wavelength'] * 1e-10 # m
+            distance = pixel_size / (calibrated_pixel_size * wavelength) # mm
+        except KeyError:
+            pass
 
         # Get detector-specific details for TF detectors as discussed with
         # Lingbo Yu. Ceta has gain of > 26 and Ceta and Falcon III both saturate
@@ -184,14 +191,14 @@ class FormatMRC(Format):
         trusted_range = (-1000, saturation)
 
         # Beam centre not in the header - set to the image centre
-        beam_centre = [(p * i) / 2 for p, i in zip(pixel_size, image_size)]
+        beam_centre = [(pixel_size * i) / 2 for i in image_size]
         detector = self._detector_factory.simple(
             "PAD",
             distance,
             beam_centre,
             "+x",
             "-y",
-            pixel_size,
+            (pixel_size, pixel_size),
             image_size,
             trusted_range,
         )
