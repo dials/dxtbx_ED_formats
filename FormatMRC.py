@@ -176,14 +176,14 @@ class FormatMRC(Format):
 
         # Get detector-specific details for TF detectors as discussed with
         # Lingbo Yu. Ceta has gain of > 26 and Ceta and Falcon III both saturate
-        # at about 8000.0
+        # at about 8000.0 for binning=1
         camera = self._header_dictionary.get('camera', '').lower()
         if 'ceta' in camera:
             gain = 26.0
-            saturation = 8000
+            saturation = 8000 * binning**2
         elif 'falcon' in camera:
             gain = 1.0
-            saturation = 8000
+            saturation = 8000 * binning**2
         else:
             gain = 1.0
             saturation = 1e6
