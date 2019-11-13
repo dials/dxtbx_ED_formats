@@ -74,7 +74,7 @@ class FormatTimepixRaw512x512(Format):
         """Get the pixel intensities"""
 
         from boost.python import streambuf
-        from dxtbx import read_uint16_bs
+        from dxtbx.ext import read_uint16_bs
         from scitbx.array_family import flex
 
         f = FormatTimepixRaw512x512.open_file(self._image_file, "rb")

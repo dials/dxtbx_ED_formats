@@ -154,9 +154,9 @@ class FormatTIFFeBIC(Format):
         from scitbx.array_family import flex
 
         if self._bytes_per_pixel == 2:
-            from dxtbx import read_uint16 as read_pixel
+            from dxtbx.ext import read_uint16 as read_pixel
         else:
-            from dxtbx import read_uint8 as read_pixel
+            from dxtbx.ext import read_uint8 as read_pixel
 
         f = FormatTIFFeBIC.open_file(self._image_file, "rb")
         f.seek(self._data_offset)
