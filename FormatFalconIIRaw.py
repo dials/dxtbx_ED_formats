@@ -58,7 +58,10 @@ class FormatFalconIIRaw(Format):
         """Get the pixel intensities"""
 
         from boost.python import streambuf
-        from dxtbx.ext import read_int16
+        try:
+            from dxtbx.ext import read_int16
+        except ImportError:
+            from dxtbx import read_int16
         from scitbx.array_family import flex
 
         f = FormatFalconIIRaw.open_file(self._image_file, "rb")

@@ -185,7 +185,10 @@ class FormatCBFGatanOneView(FormatCBF):
             )
         elif no_compression:
             from boost.python import streambuf
-            from dxtbx.ext import read_int32
+            try:
+                from dxtbx.ext import read_int32
+            except ImportError:
+                from dxtbx import read_int32
             from scitbx.array_family import flex
 
             assert len(self.get_detector()) == 1
