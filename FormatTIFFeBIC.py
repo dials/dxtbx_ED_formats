@@ -153,10 +153,14 @@ class FormatTIFFeBIC(Format):
         from boost.python import streambuf
         from scitbx.array_family import flex
 
+        try:
+            import dxtbx.ext as _dxtbx_ext
+        except ImportError:
+            import dxtbx as _dxtbx_ext
         if self._bytes_per_pixel == 2:
-            from dxtbx import read_uint16 as read_pixel
+            read_pixel = _dxtbx_ext.read_uint16
         else:
-            from dxtbx import read_uint8 as read_pixel
+            read_pixel = _dxtbx_ext.read_uint8
 
         f = FormatTIFFeBIC.open_file(self._image_file, "rb")
         f.seek(self._data_offset)
