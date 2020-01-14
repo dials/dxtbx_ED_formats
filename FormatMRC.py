@@ -35,7 +35,7 @@ class FormatMRC(Format):
             #xh = mrc.extended_header
         self._header_dictionary = self._unpack_header(h)
 
-        if h['exttyp'].tostring() == 'FEI1':
+        if h['exttyp'].tobytes() == b'FEI1':
             xh = self._read_ext_header(self._image_file)
             self._header_dictionary.update(xh)
 
@@ -110,13 +110,13 @@ class FormatMRC(Format):
         ext_header = {}
         with open(fileName,'rb') as a:
             ext_header['dim'] = struct.unpack('i',a.read(4))[0]
-            for key, offset in ext_header_offset.iteritems():
+            for key, offset in ext_header_offset.items():
                 a.seek(1024+offset[0])
                 if 's' not in offset[1] :
                     ext_header[key] = struct.unpack(offset[1],a.read(_sizeof_dtypes[offset[1]]))[0]
                 else:
-                    ext_header[key] = ''.join(struct.unpack(offset[1]*_sizeof_dtypes[offset[1]], a.read(_sizeof_dtypes[offset[1]]))).rstrip('\x00')
-            if 'Ceta' in ext_header['camera']:
+                    ext_header[key] = b''.join(struct.unpack(offset[1]*_sizeof_dtypes[offset[1]], a.read(_sizeof_dtypes[offset[1]]))).rstrip(b'\x00')
+            if b'Ceta' in ext_header['camera']:
                 ext_header['binning'] = 4096/ext_header['dim']
                 ext_header['physicalPixel'] = 14e-6
             ext_header['wavelength'] = cal_wavelength(ext_header['acceleratingVoltage'])
@@ -178,10 +178,10 @@ class FormatMRC(Format):
         # Lingbo Yu. Ceta has gain of > 26 and Ceta and Falcon III both saturate
         # at about 8000.0 for binning=1
         camera = self._header_dictionary.get('camera', '').lower()
-        if 'ceta' in camera:
+        if b'ceta' in camera:
             gain = 26.0
             saturation = 8000 * binning**2
-        elif 'falcon' in camera:
+        elif b'falcon' in camera:
             gain = 1.0
             saturation = 8000 * binning**2
         else:
