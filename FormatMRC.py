@@ -14,6 +14,7 @@ from dxtbx.format.Format import Format
 from dxtbx.model import ScanFactory
 from dxtbx.format.FormatMultiImage import FormatMultiImage
 import mrcfile
+import re
 
 logger = logging.getLogger("dials")
 
@@ -239,7 +240,9 @@ class FormatMRCimages(FormatMRC):
         dalpha = 1.0
         exposure = self._header_dictionary.get('integrationTime', 0.0)
         fname = os.path.split(self._image_file)[-1]
-        index = int(fname.split("_")[-1].split(".")[0])
+        # assume final number before the extension is the image number
+        s = fname.split("_")[-1].split(".")[0]
+        index = int(re.match('.*?([0-9]+)$', s).group(1))
         return ScanFactory.make_scan((index, index), exposure, (alpha, dalpha), {index: 0})
 
 class FormatMRCstack(FormatMultiImage, FormatMRC):
