@@ -37,8 +37,11 @@ class FormatMRC(Format):
         self._header_dictionary = self._unpack_header(h)
 
         if h['exttyp'].tobytes() == b'FEI1':
-            xh = self._read_ext_header(self._image_file)
-            self._header_dictionary.update(xh)
+            try:
+                xh = self._read_ext_header(self._image_file)
+                self._header_dictionary.update(xh)
+            except KeyError:
+                pass
 
         # Add a positive pedestal level to images to avoid negative
         # pixel values if a value is set by the environment variable
@@ -106,6 +109,9 @@ class FormatMRC(Format):
             e=1.6021766208e-19 #C, electron charge
             c=3e8 #m/s^2, speed
 
+            # Default to e- wavelength at 200 keV if voltage set to zero
+            if V0 == 0:
+                V0 = 200000
             return h/sqrt(2*m*e*V0*(1+e*V0/(2*m*c*c)))*1e10 #return wavelength in Angstrom
 
         ext_header = {}
@@ -178,7 +184,7 @@ class FormatMRC(Format):
         # Get detector-specific details for TF detectors as discussed with
         # Lingbo Yu. Ceta has gain of > 26 and Ceta and Falcon III both saturate
         # at about 8000.0 for binning=1
-        camera = self._header_dictionary.get('camera', '').lower()
+        camera = self._header_dictionary.get('camera', b'').lower()
         if b'ceta' in camera:
             gain = 26.0
             saturation = 8000 * binning**2
