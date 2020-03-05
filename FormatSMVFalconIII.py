@@ -8,17 +8,12 @@ from __future__ import absolute_import, division, print_function
 from dxtbx.format.FormatSMVADSC import FormatSMVADSC
 
 class FormatSMVFalconIII(FormatSMVADSC):
-    """We inherit from FormatSMVADSC rather than the base FormatSMV, because the
-  former is too unspecific and picks up images where DETECTOR_SN=unknown in the
-  header, like these ones. Anyway, FormatSMVADSC is more useful as it mostly
-  sets the models up correctly for our purposes."""
 
     @staticmethod
     def understand(image_file):
-        """In the datasets of interest, DETECTOR_SN=unknown"""
 
         size, header = FormatSMVADSC.get_smv_header(image_file)
-        if header.get("DETECTOR_SN") == "unknown":
+        if header.get("DETECTOR_SN") == "falcon3":
             return True
 
         return False
@@ -30,8 +25,10 @@ class FormatSMVFalconIII(FormatSMVADSC):
         # gain is 390 counts/pe (pe = primary electron of 300 keV). But each image is
         # a summation of 40 frames, and the total counts are averaged. So the gain is
         # then 390/40 ~10.
-        for p in d:
-            p.set_gain(10)
+
+        # But spotfinding results are better with gain set to 1.0!
+        #for p in d:
+        #    p.set_gain(10)
 
         return d
 
