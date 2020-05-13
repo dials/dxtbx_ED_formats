@@ -301,10 +301,11 @@ class FormatMRCstack(FormatMultiImage, FormatMRC):
 
         nframes = self.get_num_images()
         image_range = (1, nframes)
+        alpha = self._header_dictionary.get('alphaTilt', 0.0)
 
         # Dummy values, not known from the header
         exposure_times = 0.0
-        oscillation = (0, 1.0)
+        oscillation = (alpha, 1.0)
         epochs = [0] * nframes
 
         return self._scan_factory.make_scan(
