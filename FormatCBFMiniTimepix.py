@@ -125,12 +125,12 @@ class FormatCBFMiniTimepix512(FormatCBFMiniTimepix):
     def understand(image_file):
         """Check to see if this looks like a Timepix mini CBF format image,
         i.e. we can make sense of it."""
-        mime_header = ""
+        mime_header = b""
         in_binary_format_section = False
         for record in FormatCBFMini.open_file(image_file, "rb"):
-            if "--CIF-BINARY-FORMAT-SECTION--" in record:
+            if b"--CIF-BINARY-FORMAT-SECTION--" in record:
                 in_binary_format_section = True
-            elif in_binary_format_section and record[0] == "X":
+            elif in_binary_format_section and record.startswith(b"X"):
                 mime_header += record
             if in_binary_format_section and len(record.strip()) == 0:
                 # http://sourceforge.net/apps/trac/cbflib/wiki/ARRAY_DATA%20Category
@@ -139,9 +139,9 @@ class FormatCBFMiniTimepix512(FormatCBFMiniTimepix):
                 break
 
         # Look for 512 pixels
-        for record in mime_header.split("\n"):
+        for record in mime_header.split(b"\n"):
             if (
-                "-Binary-Size-Fastest-Dimension:" in record
+                b"-Binary-Size-Fastest-Dimension:" in record
                 and int(record.split()[1]) == 512
             ):
                 return True
@@ -270,12 +270,12 @@ class FormatCBFMiniTimepix1032(FormatCBFMiniTimepix):
     def understand(image_file):
         """Check to see if this looks like a Timepix mini CBF format image,
         i.e. we can make sense of it."""
-        mime_header = ""
+        mime_header = b""
         in_binary_format_section = False
         for record in FormatCBFMini.open_file(image_file, "rb"):
-            if "--CIF-BINARY-FORMAT-SECTION--" in record:
+            if b"--CIF-BINARY-FORMAT-SECTION--" in record:
                 in_binary_format_section = True
-            elif in_binary_format_section and record[0] == "X":
+            elif in_binary_format_section and record.startswith(b"X"):
                 mime_header += record
             if in_binary_format_section and len(record.strip()) == 0:
                 # http://sourceforge.net/apps/trac/cbflib/wiki/ARRAY_DATA%20Category
@@ -284,9 +284,9 @@ class FormatCBFMiniTimepix1032(FormatCBFMiniTimepix):
                 break
 
         # Look for 1032 pixels
-        for record in mime_header.split("\n"):
+        for record in mime_header.split(b"\n"):
             if (
-                "-Binary-Size-Fastest-Dimension:" in record
+                b"-Binary-Size-Fastest-Dimension:" in record
                 and int(record.split()[1]) == 1032
             ):
                 return True
