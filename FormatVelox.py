@@ -6,10 +6,55 @@ import os
 import h5py
 import json
 from scitbx.array_family import flex
+import numpy
 from dxtbx.format.Format import Format
 from dxtbx.format.FormatHDF5 import FormatHDF5
 from dxtbx.format.FormatMultiImage import FormatMultiImage
 from dxtbx import IncorrectFormatError
+
+def get_metadata(metadata):
+    mds = []
+    for i in range(metadata.shape[1]):
+        metadata_array = metadata[:, i].T
+        mdata_string = metadata_array.tostring().decode("utf-8")
+        mds.append(json.loads(mdata_string.rstrip('\x00')))
+
+    return mds
+# get_metadata()
+
+def analyse_angle(metadata):
+    alphas = []
+
+    for i, md in enumerate(metadata):
+        alpha = numpy.rad2deg(float(md["Stage"]["AlphaTilt"]))
+        alphas.append(alpha)
+
+    if len(alphas) < 2:
+        return [0,0], 0.
+
+    d_alphas = numpy.diff(alphas)
+    q25, q50, q75 = numpy.percentile(d_alphas, [25, 50, 75])
+    iqr = q75-q25
+    iqrc = 1.5
+    lowlim, highlim = q25 - iqrc*iqr, q75 + iqrc*iqr
+    d_alphas2 = d_alphas[numpy.where(numpy.logical_and(d_alphas>lowlim, d_alphas<highlim))] # outlier rejected
+    d_alpha_z = abs(d_alphas-numpy.mean(d_alphas2))/numpy.std(d_alphas2)
+
+    valid_range = [0, len(metadata)-1]
+    for i in range(len(metadata)-1):
+        if d_alpha_z[i] < 3: break
+        valid_range[0] = i+1
+
+    for i in reversed(range(len(metadata)-1)):
+        if d_alpha_z[i] < 3: break
+        valid_range[1] = i
+
+    if valid_range[0] > valid_range[1]:
+        valid_range = [0, len(metadata)-1] # reset
+
+    mean_alpha_step = (alphas[valid_range[1]] - alphas[valid_range[0]])/(valid_range[1]-valid_range[0])
+
+    return valid_range, mean_alpha_step
 
 class FormatVelox(FormatHDF5):
 
@@ -33,6 +78,36 @@ class FormatVelox(FormatHDF5):
         Format.__init__(self, image_file, **kwargs)
 
     @staticmethod
+    def _read_metadata(image_file):
+        h = h5py.File(image_file, "r")
+        ret = {}
+
+        image_path = h["/Data/Image"]
+        assert len(image_path.keys()) == 1
+        k = list(image_path.keys())[0]
+
+        ret["image_file"] = image_file
+        ret["file_handle"] = h
+        ret["data_path"] = "/Data/Image/%s/Data" % k
+        ret["metadata_path"] = "/Data/Image/%s/Metadata" % k
+
+        metadata = get_metadata(h[ret["metadata_path"]])
+        valid_range, mean_alpha_step = analyse_angle(metadata)
+        data = h[ret["data_path"]]
+
+        ret["n_frames"] = data.shape[2]
+        ret["valid_range"] = valid_range
+        ret["mean_alpha_step"] = mean_alpha_step
+        ret["width"], ret["height"] = data.shape[:2]
+        ret["binning"] = int(metadata[0]["BinaryResult"]["ImageSize"]["width"])//ret["width"]
+
+        h, m0, e, c = 6.62607004e-34, 9.10938356e-31, 1.6021766208e-19, 299792458.0
+        voltage = float(metadata[0]["Optics"]["AccelerationVoltage"])
+        ret["wavelength"] = h/numpy.sqrt(2*m0*e*voltage*(1.+e*voltage/2./m0/c**2)) * 1.e10
+
+        return ret
+
+    @staticmethod
     def _extract_lone_item(group):
         """Extract a sub-group or dataset from a group with a single key"""
         assert len(group) == 1
@@ -43,29 +118,32 @@ class FormatVelox(FormatHDF5):
         self._h5_handle = h5py.File(self.get_image_file(), "r")
         image_group = self._extract_lone_item(self._h5_handle["Data/Image"])
         self._data = image_group["Data"]
-        self._image_size = self._data.shape[0:2]
-        self._num_images = self._data.shape[2]
+        #self._image_size = self._data.shape[0:2]
+        #self._num_images = self._data.shape[2]
+        self._header_dictionary = self._read_metadata(self._image_file)
 
     def get_raw_data(self, index):
         d = self._data[:, :, index].astype("int32")
         return flex.int(d)
 
     def _goniometer(self):
-        """Dummy goniometer"""
+        """Dummy goniometer, 'vertical' as the images are viewed. Not completely
+        sure about the handedness yet"""
 
-        return self._goniometer_factory.known_axis((0, 1, 0))
+        if self._header_dictionary["mean_alpha_step"] > 0: # XXX is this really OK??
+            return self._goniometer_factory.known_axis((0, -1, 0))
+        else:
+            return self._goniometer_factory.known_axis((0, 1, 0))
 
 
     def _detector(self):
         """Dummy detector"""
 
+        image_size = (self._header_dictionary["width"], self._header_dictionary["height"])
+        binning = self._header_dictionary["binning"]
+
         # Dummy pixel size: assume 14 um for the Ceta unbinned
-        physical_pixel = 1.4e-5
-        if self._image_size == (2048, 2048):
-            binning = 2.0
-        else:
-            binning = 1.0
-        pixel_size = physical_pixel * 1000.0 * binning
+        pixel_size = 0.014 * binning
 
         # Dummy distance of 2.0m
         distance = 2000.0
@@ -89,7 +167,7 @@ class FormatVelox(FormatHDF5):
         trusted_range = (-1000, saturation)
 
         # Beam centre not in the header - set to the image centre
-        beam_centre = [(pixel_size * i) / 2 for i in self._image_size]
+        beam_centre = [(pixel_size * i) / 2 for i in image_size]
         detector = self._detector_factory.simple(
             "PAD",
             distance,
@@ -97,7 +175,7 @@ class FormatVelox(FormatHDF5):
             "+x",
             "-y",
             (pixel_size, pixel_size),
-            self._image_size,
+            image_size,
             trusted_range,
         )
 
@@ -105,19 +183,16 @@ class FormatVelox(FormatHDF5):
         return detector
 
     def _beam(self):
-        """Unpolarized beam model"""
 
-        # Default to 200 keV
-        wavelength = 0.02508
         return self._beam_factory.make_polarized_beam(
             sample_to_source=(0.0, 0.0, 1.0),
-            wavelength=wavelength,
+            wavelength=self._header_dictionary["wavelength"],
             polarization=(0, 1, 0),
             polarization_fraction=0.5,
         )
 
     def get_num_images(self):
-        return self._num_images
+        return self._header_dictionary["n_frames"]
 
     def get_goniometer(self, index=None):
         return Format.get_goniometer(self)
@@ -141,13 +216,14 @@ class FormatVelox(FormatHDF5):
     def _scan(self):
         """Dummy scan for this stack"""
 
-        image_range = (1, self._num_images)
+        image_range = (1, self.get_num_images())
 
         # Dummy values, not known from the header
         alpha = 0.0
         exposure_times = 0.0
-        oscillation = (alpha, 1.0)
-        epochs = [0] * self._num_images
+        osc_step = abs(self._header_dictionary["mean_alpha_step"])
+        oscillation = (alpha, osc_step)
+        epochs = [0] * self.get_num_images()
 
         return self._scan_factory.make_scan(
             image_range, exposure_times, oscillation, epochs, deg=True
