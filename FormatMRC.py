@@ -18,6 +18,7 @@ import re
 
 logger = logging.getLogger("dials")
 
+
 class FormatMRC(Format):
     @staticmethod
     def understand(image_file):
@@ -33,10 +34,10 @@ class FormatMRC(Format):
 
         with mrcfile.mmap(self._image_file) as mrc:
             h = mrc.header
-            #xh = mrc.extended_header
+            # xh = mrc.extended_header
         self._header_dictionary = self._unpack_header(h)
 
-        if h['exttyp'].tobytes() == b'FEI1':
+        if h["exttyp"].tobytes() == b"FEI1":
             try:
                 xh = self._read_ext_header(self._image_file)
                 self._header_dictionary.update(xh)
@@ -78,57 +79,88 @@ class FormatMRC(Format):
         """
 
         ext_header_def = [
-            ('alphaTilt',         1, 'f'),  # 4-byte floating point   Alpha tilt, in degrees.
-            ('integrationTime',       1, 'f'),  # 4-byte floating point   Exposure time in seconds.
-            ('tilt_axis',      1, 'f'),  # 4-byte floating point   The orientation of the tilt axis in the image in degrees. Vertical to the top is 0 [deg], the direction of positive rotation is anti-clockwise.
-            ('pixelSpacing',     1, 'f'),  # 4-byte floating point   The pixel size of the images in SI units (meters).
-            ('acceleratingVoltage', 1, 'f'),  # 4-byte floating point   Value of the high tension in SI units (volts).
-            ('cameraLength', 1, 'f'), #4-byte floating point The calibrated camera length
-            ('camera', 16, 'c'),
-            ('physicalPixel', 1, 'f' ),
-            ('dim', 1, 'i'),
-            ('binning', 1, 'i'),
-            ('wavelength', 1, 'f'),
-            ('noiseReduction',1,'?')
+            ("alphaTilt", 1, "f"),  # 4-byte floating point   Alpha tilt, in degrees.
+            (
+                "integrationTime",
+                1,
+                "f",
+            ),  # 4-byte floating point   Exposure time in seconds.
+            (
+                "tilt_axis",
+                1,
+                "f",
+            ),  # 4-byte floating point   The orientation of the tilt axis in the image in degrees. Vertical to the top is 0 [deg], the direction of positive rotation is anti-clockwise.
+            (
+                "pixelSpacing",
+                1,
+                "f",
+            ),  # 4-byte floating point   The pixel size of the images in SI units (meters).
+            (
+                "acceleratingVoltage",
+                1,
+                "f",
+            ),  # 4-byte floating point   Value of the high tension in SI units (volts).
+            (
+                "cameraLength",
+                1,
+                "f",
+            ),  # 4-byte floating point The calibrated camera length
+            ("camera", 16, "c"),
+            ("physicalPixel", 1, "f"),
+            ("dim", 1, "i"),
+            ("binning", 1, "i"),
+            ("wavelength", 1, "f"),
+            ("noiseReduction", 1, "?"),
         ]
-        _sizeof_dtypes =  {
-            "i":4, "f":4, "d":8, "?":1,"s":16}
+        _sizeof_dtypes = {"i": 4, "f": 4, "d": 8, "?": 1, "s": 16}
         ext_header_offset = {
-            'alphaTilt':(100,'d'),
-            'integrationTime': (419,'d'),
-            'tilt_axis':(140, 'd'),
-            'pixelSpacing':(156, 'd'),
-            'acceleratingVoltage':(84, 'd'),
-            'camera':(435, 's'),
-            'binning':(427, 'i'),
-            'noiseReduction':(467,'?')}
+            "alphaTilt": (100, "d"),
+            "integrationTime": (419, "d"),
+            "tilt_axis": (140, "d"),
+            "pixelSpacing": (156, "d"),
+            "acceleratingVoltage": (84, "d"),
+            "camera": (435, "s"),
+            "binning": (427, "i"),
+            "noiseReduction": (467, "?"),
+        }
 
         def cal_wavelength(V0):
-            h=6.626e-34 #Js, Planck's constant
-            m=9.109e-31 #kg, electron mass
-            e=1.6021766208e-19 #C, electron charge
-            c=3e8 #m/s^2, speed
+            h = 6.626e-34  # Js, Planck's constant
+            m = 9.109e-31  # kg, electron mass
+            e = 1.6021766208e-19  # C, electron charge
+            c = 3e8  # m/s^2, speed
 
             # Default to e- wavelength at 200 keV if voltage set to zero
             if V0 == 0:
                 V0 = 200000
-            return h/sqrt(2*m*e*V0*(1+e*V0/(2*m*c*c)))*1e10 #return wavelength in Angstrom
+            return (
+                h / sqrt(2 * m * e * V0 * (1 + e * V0 / (2 * m * c * c))) * 1e10
+            )  # return wavelength in Angstrom
 
         ext_header = {}
-        with open(fileName,'rb') as a:
-            ext_header['dim'] = struct.unpack('i',a.read(4))[0]
+        with open(fileName, "rb") as a:
+            ext_header["dim"] = struct.unpack("i", a.read(4))[0]
             for key, offset in ext_header_offset.items():
-                a.seek(1024+offset[0])
-                if 's' not in offset[1] :
-                    ext_header[key] = struct.unpack(offset[1],a.read(_sizeof_dtypes[offset[1]]))[0]
+                a.seek(1024 + offset[0])
+                if "s" not in offset[1]:
+                    ext_header[key] = struct.unpack(
+                        offset[1], a.read(_sizeof_dtypes[offset[1]])
+                    )[0]
                 else:
-                    ext_header[key] = b''.join(struct.unpack(offset[1]*_sizeof_dtypes[offset[1]], a.read(_sizeof_dtypes[offset[1]]))).rstrip(b'\x00')
-            if b'Ceta' in ext_header['camera']:
-                ext_header['binning'] = 4096/ext_header['dim']
-                ext_header['physicalPixel'] = 14e-6
-            ext_header['wavelength'] = cal_wavelength(ext_header['acceleratingVoltage'])
-            ext_header['cameraLength'] = (ext_header['physicalPixel']*ext_header['binning'])/(ext_header['pixelSpacing']*ext_header['wavelength']*1e-10)
-            #print ext_header
+                    ext_header[key] = b"".join(
+                        struct.unpack(
+                            offset[1] * _sizeof_dtypes[offset[1]],
+                            a.read(_sizeof_dtypes[offset[1]]),
+                        )
+                    ).rstrip(b"\x00")
+            if b"Ceta" in ext_header["camera"]:
+                ext_header["binning"] = 4096 / ext_header["dim"]
+                ext_header["physicalPixel"] = 14e-6
+            ext_header["wavelength"] = cal_wavelength(ext_header["acceleratingVoltage"])
+            ext_header["cameraLength"] = (
+                ext_header["physicalPixel"] * ext_header["binning"]
+            ) / (ext_header["pixelSpacing"] * ext_header["wavelength"] * 1e-10)
+            # print ext_header
 
         return ext_header
 
@@ -149,9 +181,8 @@ class FormatMRC(Format):
         """Return a model for a simple single-axis goniometer."""
 
         direction = matrix.col((0.0, -1.0, 0.0))
-        rot_by_deg = self._header_dictionary.get('tilt_axis', 0.0)
-        direction.rotate(axis=matrix.col((0.0, 0.0, 1.0)),
-            angle=rot_by_deg, deg=True)
+        rot_by_deg = self._header_dictionary.get("tilt_axis", 0.0)
+        direction.rotate(axis=matrix.col((0.0, 0.0, 1.0)), angle=rot_by_deg, deg=True)
 
         return self._goniometer_factory.known_axis(direction)
 
@@ -161,8 +192,8 @@ class FormatMRC(Format):
         image_size = (self._header_dictionary["nx"], self._header_dictionary["ny"])
 
         # Get pixel size, defaulting to 14 um for the Ceta if unknown
-        physical_pixel = self._header_dictionary.get('physicalPixel', 1.4e-5)
-        binning = self._header_dictionary.get('binning')
+        physical_pixel = self._header_dictionary.get("physicalPixel", 1.4e-5)
+        binning = self._header_dictionary.get("binning")
         if binning is None:
             if image_size == (2048, 2048):
                 binning = 2.0
@@ -173,24 +204,24 @@ class FormatMRC(Format):
         # The best distance measure is calculated from the calibrated pixel
         # size. If this is not available then default to the nominal camera
         # length, or finally to 2.0m
-        distance = self._header_dictionary.get('cameraLength', 2.0) * 1000
+        distance = self._header_dictionary.get("cameraLength", 2.0) * 1000
         try:
-            calibrated_pixel_size = self._header_dictionary['pixelSpacing'] # 1/m
-            wavelength = self._header_dictionary['wavelength'] * 1e-10 # m
-            distance = pixel_size / (calibrated_pixel_size * wavelength) # mm
+            calibrated_pixel_size = self._header_dictionary["pixelSpacing"]  # 1/m
+            wavelength = self._header_dictionary["wavelength"] * 1e-10  # m
+            distance = pixel_size / (calibrated_pixel_size * wavelength)  # mm
         except KeyError:
             pass
 
         # Get detector-specific details for TF detectors as discussed with
         # Lingbo Yu. Ceta has gain of > 26 and Ceta and Falcon III both saturate
         # at about 8000.0 for binning=1
-        camera = self._header_dictionary.get('camera', b'').lower()
-        if b'ceta' in camera:
+        camera = self._header_dictionary.get("camera", b"").lower()
+        if b"ceta" in camera:
             gain = 26.0
-            saturation = 8000 * binning**2
-        elif b'falcon' in camera:
+            saturation = 8000 * binning ** 2
+        elif b"falcon" in camera:
             gain = 1.0
-            saturation = 8000 * binning**2
+            saturation = 8000 * binning ** 2
         else:
             gain = 1.0
             saturation = 1e6
@@ -210,14 +241,15 @@ class FormatMRC(Format):
             trusted_range,
         )
 
-        for panel in detector: panel.set_gain(gain)
+        for panel in detector:
+            panel.set_gain(gain)
         return detector
 
     def _beam(self):
         """Unpolarized beam model"""
 
         # Default to 200 keV
-        wavelength = self._header_dictionary.get('wavelength', 0.02508)
+        wavelength = self._header_dictionary.get("wavelength", 0.02508)
         return self._beam_factory.make_polarized_beam(
             sample_to_source=(0.0, 0.0, 1.0),
             wavelength=wavelength,
@@ -225,8 +257,8 @@ class FormatMRC(Format):
             polarization_fraction=0.5,
         )
 
-class FormatMRCimages(FormatMRC):
 
+class FormatMRCimages(FormatMRC):
     @staticmethod
     def understand(image_file):
         mrc = mrcfile.mmap(image_file)
@@ -242,17 +274,19 @@ class FormatMRCimages(FormatMRC):
     def _scan(self):
         """Dummy scan for this image"""
 
-        alpha = self._header_dictionary.get('alphaTilt', 0.0)
+        alpha = self._header_dictionary.get("alphaTilt", 0.0)
         dalpha = 1.0
-        exposure = self._header_dictionary.get('integrationTime', 0.0)
+        exposure = self._header_dictionary.get("integrationTime", 0.0)
         fname = os.path.split(self._image_file)[-1]
         # assume final number before the extension is the image number
         s = fname.split("_")[-1].split(".")[0]
-        index = int(re.match('.*?([0-9]+)$', s).group(1))
-        return ScanFactory.make_scan((index, index), exposure, (alpha, dalpha), {index: 0})
+        index = int(re.match(".*?([0-9]+)$", s).group(1))
+        return ScanFactory.make_scan(
+            (index, index), exposure, (alpha, dalpha), {index: 0}
+        )
+
 
 class FormatMRCstack(FormatMultiImage, FormatMRC):
-
     @staticmethod
     def understand(image_file):
         mrc = mrcfile.mmap(image_file)
@@ -301,7 +335,7 @@ class FormatMRCstack(FormatMultiImage, FormatMRC):
 
         nframes = self.get_num_images()
         image_range = (1, nframes)
-        alpha = self._header_dictionary.get('alphaTilt', 0.0)
+        alpha = self._header_dictionary.get("alphaTilt", 0.0)
 
         # Dummy values, not known from the header
         exposure_times = 0.0

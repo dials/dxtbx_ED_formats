@@ -7,8 +7,8 @@ from __future__ import absolute_import, division, print_function
 
 from dxtbx.format.FormatSMVADSC import FormatSMVADSC
 
-class FormatSMVCetaD_TUI(FormatSMVADSC):
 
+class FormatSMVCetaD_TUI(FormatSMVADSC):
     @staticmethod
     def understand(image_file):
 
@@ -30,9 +30,9 @@ class FormatSMVCetaD_TUI(FormatSMVADSC):
         )
         # Ceta has gain of > 26 and saturates at about 8000.0 for binning=1
         # according to Thermo Fisher
-        binning = {"1x1":1, "2x2":2}.get(self._header_dictionary.get("BIN"), 1)
+        binning = {"1x1": 1, "2x2": 2}.get(self._header_dictionary.get("BIN"), 1)
         gain = float(self._header_dictionary.get("GAIN", 26.0))
-        saturation = 8000 * binning**2
+        saturation = 8000 * binning ** 2
         trusted_range = (-1000, saturation)
 
         return self._detector_factory.simple(

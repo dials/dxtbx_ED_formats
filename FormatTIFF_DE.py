@@ -49,7 +49,6 @@ class FormatTIFF_DE(FormatTIFF):
     def detectorbase_start(self):
         pass
 
-
     def get_raw_data(self):
         """Get the pixel intensities"""
 
@@ -86,7 +85,8 @@ class FormatTIFF_DE(FormatTIFF):
             "PAD", 700, beam_centre, "+x", "-y", pixel_size, image_size, trusted_range
         )
         # Not sure what the gain should be, but spot-finding works when it is ~70
-        for p in d: p.set_gain(70)
+        for p in d:
+            p.set_gain(70)
         return d
 
     def _beam(self):
@@ -101,4 +101,3 @@ class FormatTIFF_DE(FormatTIFF):
         fname = os.path.split(self._image_file)[-1]
         index = int(fname.split("_")[-1].split(".")[0])
         return ScanFactory.make_scan((index, index), 0.0, (0, 0.5), {index: 0})
-

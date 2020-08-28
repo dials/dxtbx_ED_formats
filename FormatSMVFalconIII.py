@@ -7,8 +7,8 @@ from __future__ import absolute_import, division, print_function
 
 from dxtbx.format.FormatSMVADSC import FormatSMVADSC
 
-class FormatSMVFalconIII(FormatSMVADSC):
 
+class FormatSMVFalconIII(FormatSMVADSC):
     @staticmethod
     def understand(image_file):
 
@@ -27,7 +27,7 @@ class FormatSMVFalconIII(FormatSMVADSC):
         # then 390/40 ~10.
 
         # But spotfinding results are better with gain set to 1.0!
-        #for p in d:
+        # for p in d:
         #    p.set_gain(10)
 
         return d

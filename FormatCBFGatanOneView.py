@@ -185,6 +185,7 @@ class FormatCBFGatanOneView(FormatCBF):
             )
         elif no_compression:
             from boost.python import streambuf
+
             try:
                 from dxtbx.ext import read_int32
             except ImportError:

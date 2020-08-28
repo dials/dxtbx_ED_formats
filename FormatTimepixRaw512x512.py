@@ -74,6 +74,7 @@ class FormatTimepixRaw512x512(Format):
         """Get the pixel intensities"""
 
         from boost.python import streambuf
+
         try:
             from dxtbx.ext import read_uint16_bs
         except ImportError:

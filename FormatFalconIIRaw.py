@@ -58,6 +58,7 @@ class FormatFalconIIRaw(Format):
         """Get the pixel intensities"""
 
         from boost.python import streambuf
+
         try:
             from dxtbx.ext import read_int16
         except ImportError:
