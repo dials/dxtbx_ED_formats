@@ -1,4 +1,6 @@
-"""Format class for data stored in the FEI EMD (Velox) format"""
+"""Format class for data stored in the FEI EMD (Velox) format. Functions to
+read metadata from the files are taken from from yamtbx by @keitaroyam. See
+https://github.com/keitaroyam/yamtbx/blob/master/dxtbx_formats/FormatEMD.py"""
 
 from __future__ import absolute_import, division, print_function
 
@@ -21,9 +23,6 @@ def get_metadata(metadata):
         mds.append(json.loads(mdata_string.rstrip("\x00")))
 
     return mds
-
-
-# get_metadata()
 
 
 def analyse_angle(metadata):
