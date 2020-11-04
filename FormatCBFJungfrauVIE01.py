@@ -106,7 +106,16 @@ class FormatCBFJungfrauVIE01(FormatCBF):
     def _goniometer(self):
         """Return a model for a simple single-axis goniometer."""
 
-        return self._goniometer_factory.single_axis()
+        # From T. Gruene:
+        # >the rotation axis is
+        # >0.4983416  -0.8668326   0.0060932
+        # >when the detector distance is about 725mm ('D500', low res data) and
+        # >0.56652  -0.82390   0.00335
+        # >when the detector distance is about 279mm ('D190', high res data).
+        # Here we take the mean of these directions.
+
+        direction = (0.5329242414415575, -0.846149760997591, 0.004725975842100904)
+        return self._goniometer_factory.known_axis(direction)
 
     def _beam(self):
         """Dummy unpolarized beam"""
