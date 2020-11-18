@@ -39,7 +39,7 @@ class FormatMRC(Format):
 
         if h["exttyp"].tobytes() == b"FEI1":
             try:
-                xh = self._read_ext_header(self._image_file)
+                xh = self.read_ext_header(self._image_file)
                 self._header_dictionary.update(xh)
             except KeyError:
                 pass
@@ -72,7 +72,7 @@ class FormatMRC(Format):
         return hd
 
     @staticmethod
-    def _read_ext_header(fileName):
+    def read_ext_header(fileName):
         """
         Read FEI1 format extended metadata. See FeiMrc2Img.py from
         https://github.com/fei-company/FeiImageFileIO/ courtesy of Lingbo Yu.
