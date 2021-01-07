@@ -37,9 +37,15 @@ class FormatMRC(Format):
             # xh = mrc.extended_header
         self._header_dictionary = self._unpack_header(h)
 
+        fei_xheader_version = None
         if h["exttyp"].tobytes() == b"FEI1":
+            fei_xheader_version = 1
+        elif h["exttyp"].tobytes() == b"FEI2":
+            fei_xheader_version = 2
+
+        if fei_xheader_version:
             try:
-                xh = self.read_ext_header(self._image_file)
+                xh = self.read_ext_header(self._image_file, version=fei_xheader_version)
                 self._header_dictionary.update(xh)
             except KeyError:
                 pass
@@ -72,47 +78,14 @@ class FormatMRC(Format):
         return hd
 
     @staticmethod
-    def read_ext_header(fileName):
+    def read_ext_header(fileName, version=1):
         """
-        Read FEI1 format extended metadata. See FeiMrc2Img.py from
+        Read FEI extended metadata. Originally based on FeiMrc2Img.py from
         https://github.com/fei-company/FeiImageFileIO/ courtesy of Lingbo Yu.
         """
 
-        ext_header_def = [
-            ("alphaTilt", 1, "f"),  # 4-byte floating point   Alpha tilt, in degrees.
-            (
-                "integrationTime",
-                1,
-                "f",
-            ),  # 4-byte floating point   Exposure time in seconds.
-            (
-                "tilt_axis",
-                1,
-                "f",
-            ),  # 4-byte floating point   The orientation of the tilt axis in the image in degrees. Vertical to the top is 0 [deg], the direction of positive rotation is anti-clockwise.
-            (
-                "pixelSpacing",
-                1,
-                "f",
-            ),  # 4-byte floating point   The pixel size of the images in SI units (meters).
-            (
-                "acceleratingVoltage",
-                1,
-                "f",
-            ),  # 4-byte floating point   Value of the high tension in SI units (volts).
-            (
-                "cameraLength",
-                1,
-                "f",
-            ),  # 4-byte floating point The calibrated camera length
-            ("camera", 16, "c"),
-            ("physicalPixel", 1, "f"),
-            ("dim", 1, "i"),
-            ("binning", 1, "i"),
-            ("wavelength", 1, "f"),
-            ("noiseReduction", 1, "?"),
-        ]
-        _sizeof_dtypes = {"i": 4, "f": 4, "d": 8, "?": 1, "s": 16}
+
+        _sizeof_dtypes = {"i": 4, "q": 8, "f": 4, "d": 8, "?": 1, "s": 16}
         ext_header_offset = {
             "alphaTilt": (100, "d"),
             "integrationTime": (419, "d"),
@@ -123,6 +96,26 @@ class FormatMRC(Format):
             "binning": (427, "i"),
             "noiseReduction": (467, "?"),
         }
+        if version == 2:
+            ext_header_offset.update(
+                {
+                    "scanRotation": (768, "d"),
+                    "diffractionPatternRotation": (776, "d"),
+                    "imageRotation": (784, "d"),
+                    "scanModeEnum": (792, "i"),
+                    "acquisitionTimeStamp": (796, "q"),
+                    "detectorCommercialName": (804, "s"),
+                    "startTiltAngle": (820, "d"),
+                    "endTiltAngle": (828, "d"),
+                    "tiltPerImage": (836, "d"),
+                    "tiltSpeed": (844, "d"),
+                    "beamCentreXpx": (852, "i"),
+                    "beamCentreYpx": (856, "i"),
+                    "cfegFlashTimestamp": (860, "q"),
+                    "phasePlatePositionIndex": (868, "i"),
+                    "objectiveApertureName": (872, "s"),
+                }
+            )
 
         def cal_wavelength(V0):
             h = 6.626e-34  # Js, Planck's constant
@@ -138,29 +131,27 @@ class FormatMRC(Format):
             )  # return wavelength in Angstrom
 
         ext_header = {}
-        with open(fileName, "rb") as a:
-            ext_header["dim"] = struct.unpack("i", a.read(4))[0]
-            for key, offset in ext_header_offset.items():
-                a.seek(1024 + offset[0])
-                if "s" not in offset[1]:
-                    ext_header[key] = struct.unpack(
-                        offset[1], a.read(_sizeof_dtypes[offset[1]])
-                    )[0]
+        with open(fileName, "rb") as f:
+            ext_header["dim"] = struct.unpack("i", f.read(4))[0]
+            for key, (offset, fmt) in ext_header_offset.items():
+                f.seek(1024 + offset)  # Skip MRC main header
+                if "s" not in fmt:
+                    ext_header[key] = struct.unpack(fmt, f.read(_sizeof_dtypes[fmt]))[0]
                 else:
                     ext_header[key] = b"".join(
                         struct.unpack(
-                            offset[1] * _sizeof_dtypes[offset[1]],
-                            a.read(_sizeof_dtypes[offset[1]]),
+                            fmt * _sizeof_dtypes[fmt], f.read(_sizeof_dtypes[fmt]),
                         )
                     ).rstrip(b"\x00")
-            if b"Ceta" in ext_header["camera"]:
-                ext_header["binning"] = 4096 / ext_header["dim"]
-                ext_header["physicalPixel"] = 14e-6
-            ext_header["wavelength"] = cal_wavelength(ext_header["acceleratingVoltage"])
-            ext_header["cameraLength"] = (
-                ext_header["physicalPixel"] * ext_header["binning"]
-            ) / (ext_header["pixelSpacing"] * ext_header["wavelength"] * 1e-10)
-            # print ext_header
+
+        if b"Ceta" in ext_header["camera"]:
+            ext_header["binning"] = 4096 / ext_header["dim"]
+            ext_header["physicalPixel"] = 14e-6
+
+        ext_header["wavelength"] = cal_wavelength(ext_header["acceleratingVoltage"])
+        ext_header["cameraLength"] = (
+            ext_header["physicalPixel"] * ext_header["binning"]
+        ) / (ext_header["pixelSpacing"] * ext_header["wavelength"] * 1e-10)
 
         return ext_header
 
@@ -272,18 +263,18 @@ class FormatMRCimages(FormatMRC):
         Format.__init__(self, image_file, **kwargs)
 
     def _scan(self):
-        """Dummy scan for this image"""
+        """Scan model for this image, filling out any unavailable items with
+        dummy values"""
 
         alpha = self._header_dictionary.get("alphaTilt", 0.0)
-        dalpha = 1.0
+        dalpha = self._header_dictionary.get("tiltPerImage", 1.0)
         exposure = self._header_dictionary.get("integrationTime", 0.0)
+        oscillation = (alpha, dalpha)
         fname = os.path.split(self._image_file)[-1]
-        # assume final number before the extension is the image number
+        # assume that the final number before the extension is the image number
         s = fname.split("_")[-1].split(".")[0]
         index = int(re.match(".*?([0-9]+)$", s).group(1))
-        return ScanFactory.make_scan(
-            (index, index), exposure, (alpha, dalpha), {index: 0}
-        )
+        return ScanFactory.make_scan((index, index), exposure, oscillation, {index: 0})
 
 
 class FormatMRCstack(FormatMultiImage, FormatMRC):
@@ -331,17 +322,18 @@ class FormatMRCstack(FormatMultiImage, FormatMRC):
         return flex.double(raw_data.astype("double")) + self.pedestal
 
     def _scan(self):
-        """Dummy scan for this stack"""
+        """Scan model for this stack, filling out any unavailable items with
+        dummy values"""
 
+        alpha = self._header_dictionary.get("alphaTilt", 0.0)
+        dalpha = self._header_dictionary.get("tiltPerImage", 1.0)
+        exposure = self._header_dictionary.get("integrationTime", 0.0)
+
+        oscillation = (alpha, dalpha)
         nframes = self.get_num_images()
         image_range = (1, nframes)
-        alpha = self._header_dictionary.get("alphaTilt", 0.0)
-
-        # Dummy values, not known from the header
-        exposure_times = 0.0
-        oscillation = (alpha, 1.0)
         epochs = [0] * nframes
 
         return self._scan_factory.make_scan(
-            image_range, exposure_times, oscillation, epochs, deg=True
+            image_range, exposure, oscillation, epochs, deg=True
         )
