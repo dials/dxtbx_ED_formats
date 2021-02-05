@@ -273,7 +273,10 @@ class FormatMRCimages(FormatMRC):
         fname = os.path.split(self._image_file)[-1]
         # assume that the final number before the extension is the image number
         s = fname.split("_")[-1].split(".")[0]
-        index = int(re.match(".*?([0-9]+)$", s).group(1))
+        try:
+            index = int(re.match(".*?([0-9]+)$", s).group(1))
+        except AttributeError:
+            index = 1
         return ScanFactory.make_scan((index, index), exposure, oscillation, {index: 0})
 
 
