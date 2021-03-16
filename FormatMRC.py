@@ -90,7 +90,7 @@ class FormatMRC(Format):
         return hd
 
     @staticmethod
-    def read_ext_header(fileName, version=1):
+    def read_ext_header(file_name, version=1):
         """
         Read FEI extended metadata. Originally based on FeiMrc2Img.py from
         https://github.com/fei-company/FeiImageFileIO/ courtesy of Lingbo Yu.
@@ -143,7 +143,7 @@ class FormatMRC(Format):
             )  # return wavelength in Angstrom
 
         ext_header = {}
-        with open(fileName, "rb") as f:
+        with Format.open_file(file_name, "rb") as f:
             ext_header["dim"] = struct.unpack("i", f.read(4))[0]
             for key, (offset, fmt) in ext_header_offset.items():
                 f.seek(1024 + offset)  # Skip MRC main header
