@@ -23,7 +23,7 @@ class FormatMRC(Format):
     @staticmethod
     def understand(image_file):
         try:
-            mrc = mrcfile.mmap(image_file)
+            mrc = mrcfile.open(image_file)
         except ValueError:
             return False
         return True
@@ -32,9 +32,21 @@ class FormatMRC(Format):
         """Open the MRC file, read the metadata into an internal dictionary
         self._header_dictionary, add FEI extended metadata if available"""
 
-        with mrcfile.mmap(self._image_file) as mrc:
-            h = mrc.header
-            # xh = mrc.extended_header
+        # We will use memmap for uncompressed files, which might be large stacks,
+        # otherwise take advantage of transparent decompression
+        self.open_function = None
+        try:
+            with mrcfile.mmap(self._image_file) as mrc:
+                h = mrc.header
+                self.open_function = mrcfile.mmap
+                # xh = mrc.extended_header
+        except ValueError:
+            pass
+        if self.open_function is None:
+            with mrcfile.open(self._image_file) as mrc:
+                h = mrc.header
+                self.open_function = mrcfile.open
+
         self._header_dictionary = self._unpack_header(h)
 
         fei_xheader_version = None
@@ -157,16 +169,15 @@ class FormatMRC(Format):
 
     def get_raw_data(self):
 
-        # Use mrcfile to open the dataset and the image.
-        # Note MRC files use z, y, x ordering
-        with mrcfile.mmap(self._image_file) as mrc:
+        with self.open_function(self._image_file) as mrc:
             image = flex.double(mrc.data.astype("double"))
-            image += self.pedestal
 
-            if self.truncate:
-                image.set_selected((image < 0), 0)
+        image += self.pedestal
 
-            return image
+        if self.truncate:
+            image.set_selected((image < 0), 0)
+
+        return image
 
     def _goniometer(self):
         """Return a model for a simple single-axis goniometer."""
@@ -252,7 +263,7 @@ class FormatMRC(Format):
 class FormatMRCimages(FormatMRC):
     @staticmethod
     def understand(image_file):
-        mrc = mrcfile.mmap(image_file)
+        mrc = mrcfile.open(image_file)
         return not mrc.is_image_stack()
 
     def __init__(self, image_file, **kwargs):
@@ -283,7 +294,7 @@ class FormatMRCimages(FormatMRC):
 class FormatMRCstack(FormatMultiImage, FormatMRC):
     @staticmethod
     def understand(image_file):
-        mrc = mrcfile.mmap(image_file)
+        mrc = mrcfile.open(image_file)
         return mrc.is_image_stack()
 
     def __init__(self, image_file, **kwargs):
@@ -317,12 +328,16 @@ class FormatMRCstack(FormatMultiImage, FormatMRC):
         return Format.get_image_file(self)
 
     def get_raw_data(self, index):
-        # Use mrcfile to open the dataset and extract slice index from the stack.
         # Note MRC files use z, y, x ordering
-        with mrcfile.mmap(self._image_file) as mrc:
-            raw_data = mrc.data[index, ...]
+        with self.open_function(self._image_file) as mrc:
+            image = flex.double(mrc.data[index, ...].astype("double"))
 
-        return flex.double(raw_data.astype("double")) + self.pedestal
+        image += self.pedestal
+
+        if self.truncate:
+            image.set_selected((image < 0), 0)
+
+        return image
 
     def _scan(self):
         """Scan model for this stack, filling out any unavailable items with
