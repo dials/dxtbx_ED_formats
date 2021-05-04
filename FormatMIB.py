@@ -149,7 +149,7 @@ class FormatMIB(Format):
         try:
             with open(image_file, "rb") as f:
                 head = f.read(384).decode().split(",")
-        except OSError, UnicodeDecodeError:
+        except (OSError, UnicodeDecodeError):
             return False
 
         return head[0] == "MQ1"

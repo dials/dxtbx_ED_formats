@@ -20,6 +20,9 @@ class FormatTIFF_Merlin(Format):
     The header does not contain useful information about the geometry, therefore
     we will construct dummy objects and expect to override on import using
     site.phil.
+
+    WARNING: this format is not very specific and will pick up *any* TIFF file
+    containing a single 512x512 pixel image.
     """
 
     @staticmethod
@@ -28,6 +31,7 @@ class FormatTIFF_Merlin(Format):
         expected from the Merlin detector"""
 
         if not tifffile:
+            print("FormatTIFF_Merlin is installed but the required library tifffile is not available")
             return False
 
         try:
@@ -40,7 +44,6 @@ class FormatTIFF_Merlin(Format):
             assert len(tif.series) == 1
             page = tif.pages[0]
             assert page.shape == (512, 512)
-            assert "SerialEM" in page.tags["ImageDescription"].value
         except (AssertionError, KeyError):
             return False
         finally:
