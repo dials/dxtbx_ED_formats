@@ -4,6 +4,7 @@ want to override the beam model to produce an unpolarised beam and to set the
 detector gain to something sensible"""
 
 from __future__ import absolute_import, division, print_function
+import os
 
 from dxtbx.format.FormatSMVADSC import FormatSMVADSC
 
@@ -12,6 +13,11 @@ class FormatSMVCetaD_TUI(FormatSMVADSC):
     @staticmethod
     def understand(image_file):
 
+        # Allow this class to override FormatSMVADSC with an environment variable
+        if "FORCE_SMV_AS_CETAD" in os.environ:
+            return True
+
+        # Otherwise recognise specific instruments from the header
         size, header = FormatSMVADSC.get_smv_header(image_file)
         if header.get("BEAMLINE") == "CETAD_TUI":
             return True
