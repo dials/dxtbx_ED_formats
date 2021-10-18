@@ -40,6 +40,7 @@ class FormatSMVCetaD_TUI(FormatSMVADSC):
         gain = float(self._header_dictionary.get("GAIN", 26.0))
         saturation = 8000 * binning ** 2
         trusted_range = (-1000, saturation)
+        pedestal = float(self._header_dictionary.get("IMAGE_PEDESTAL", 0))
 
         return self._detector_factory.simple(
             "PAD",
@@ -52,6 +53,7 @@ class FormatSMVCetaD_TUI(FormatSMVADSC):
             trusted_range,
             [],
             gain=gain,
+            pedestal=pedestal,
         )
 
     def _beam(self):
