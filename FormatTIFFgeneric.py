@@ -159,7 +159,7 @@ class FormatTIFFgeneric_ASI(FormatTIFFgeneric):
 
         pixel_size = 0.055, 0.055
         image_size = (516, 516)
-        dyn_range = 12
+        dyn_range = 20 # XXX ?
         trusted_range = (-1, 2 ** dyn_range - 1)
         beam_centre = [(p * i) / 2 for p, i in zip(pixel_size, image_size)]
         d = self._detector_factory.simple(
