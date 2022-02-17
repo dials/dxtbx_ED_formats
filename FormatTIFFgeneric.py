@@ -123,7 +123,6 @@ class FormatTIFFgeneric_Merlin(FormatTIFFgeneric):
 class FormatTIFFgeneric_ASI(FormatTIFFgeneric):
     """Format reader for the PETS2 Glycine example, which was recorded on an
     ASI hybrid pixel detector.
-
     """
 
     @staticmethod
@@ -160,6 +159,54 @@ class FormatTIFFgeneric_ASI(FormatTIFFgeneric):
         pixel_size = 0.055, 0.055
         image_size = (516, 516)
         dyn_range = 20 # XXX ?
+        trusted_range = (-1, 2 ** dyn_range - 1)
+        beam_centre = [(p * i) / 2 for p, i in zip(pixel_size, image_size)]
+        d = self._detector_factory.simple(
+            "PAD", 2440, beam_centre, "+x", "-y", pixel_size, image_size, trusted_range
+        )
+        return d
+
+
+class FormatTIFFgeneric_FEI_Tecnai_G2(FormatTIFFgeneric):
+    """Format reader for the PETS2 Quartz SiO2 example, which was recorded on
+    an FEI Tecnai G2 microscope with a CCD detector.
+    """
+
+    @staticmethod
+    def understand(image_file):
+        """Check to see if this looks like a TIFF format 516*516 image with
+        an expected string in the ImageDescription tag"""
+
+        with tifffile.TiffFile(image_file) as tif:
+
+            page = tif.pages[0]
+            if page.shape != (1024, 1024):
+                return False
+            OlympusSIS = page.tags[33560]
+            if not "Veleta" in OlympusSIS.value["cameraname"]:
+                return False
+
+        return True
+
+    def _goniometer(self):
+        """Dummy goniometer, 'vertical' as the images are viewed. Not completely
+        sure about the handedness yet"""
+
+        return self._goniometer_factory.known_axis((0, 1, 0))
+
+    def _beam(self):
+        """Dummy beam, energy 200 keV"""
+
+        wavelength = 0.02508
+        return self._beam_factory.simple(wavelength)
+
+    def _detector(self):
+        """Dummy detector"""
+
+        # 2x2 binning https://cfim.ku.dk/equipment/electron_microscopy/cm100/Veleta.pdf
+        pixel_size = 0.026, 0.026
+        image_size = (1024, 1024)
+        dyn_range = 14 # XXX ?
         trusted_range = (-1, 2 ** dyn_range - 1)
         beam_centre = [(p * i) / 2 for p, i in zip(pixel_size, image_size)]
         d = self._detector_factory.simple(
