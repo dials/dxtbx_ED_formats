@@ -4,6 +4,7 @@ detectors producing electron diffraction data"""
 import os
 import io
 from dxtbx.format.Format import Format
+from dxtbx.format.FormatStill import FormatStill
 from scitbx.array_family import flex
 import re
 from dxtbx import flumpy
@@ -276,6 +277,60 @@ class FormatTIFFgeneric_Medipix(FormatTIFFgeneric):
         pixel_size = 0.055, 0.055
         image_size = (514, 514)
         dyn_range = 16
+        trusted_range = (-1, 2 ** dyn_range - 1)
+        beam_centre = [(p * i) / 2 for p, i in zip(pixel_size, image_size)]
+        d = self._detector_factory.simple(
+            "PAD", 2440, beam_centre, "+x", "-y", pixel_size, image_size, trusted_range
+        )
+        return d
+
+
+class FormatTIFF_UED(FormatTIFFgeneric, FormatStill):
+    """An experimental image reading class for TIFF images from a UED
+    instrument. Most of this is probably incorrect.
+    """
+
+    def __init__(self, image_file, **kwargs):
+
+        FormatTIFFgeneric.__init__(self, image_file, **kwargs)
+        FormatStill.__init__(self, image_file, **kwargs)
+
+        return
+
+    @staticmethod
+    def understand(image_file):
+        """Check to see if this looks like a TIFF format image with a single page"""
+
+        with tifffile.TiffFile(image_file) as tif:
+            page = tif.pages[0]
+            if page.shape != (1300, 1340):
+                return False
+
+        return True
+
+    def _goniometer(self):
+        """Dummy goniometer, 'vertical' as the images are viewed. Not completely
+        sure about the handedness yet"""
+
+        return self._goniometer_factory.known_axis((0, 1, 0))
+
+    def _beam(self):
+        """Dummy beam, energy 200 keV"""
+
+        wavelength = 0.02508
+        return self._beam_factory.make_polarized_beam(
+            sample_to_source=(0.0, 0.0, 1.0),
+            wavelength=wavelength,
+            polarization=(0, 1, 0),
+            polarization_fraction=0.5,
+        )
+
+    def _detector(self):
+        """Dummy detector"""
+
+        pixel_size = 0.060, 0.060
+        image_size = (1300, 1340)
+        dyn_range = 20 # No idea what is correct
         trusted_range = (-1, 2 ** dyn_range - 1)
         beam_centre = [(p * i) / 2 for p, i in zip(pixel_size, image_size)]
         d = self._detector_factory.simple(
