@@ -312,12 +312,6 @@ class FormatTIFF_UED(FormatTIFFgeneric, FormatStill):
 
         return True
 
-    def _goniometer(self):
-        """Dummy goniometer, 'vertical' as the images are viewed. Not completely
-        sure about the handedness yet"""
-
-        return self._goniometer_factory.known_axis((0, 1, 0))
-
     def _beam(self):
         """Dummy beam, energy 200 keV"""
 
@@ -339,5 +333,58 @@ class FormatTIFF_UED(FormatTIFFgeneric, FormatStill):
         beam_centre = [(p * i) / 2 for p, i in zip(pixel_size, image_size)]
         d = self._detector_factory.simple(
             "PAD", 2440, beam_centre, "+x", "-y", pixel_size, image_size, trusted_range
+        )
+        return d
+
+
+class FormatTIFF_UED_BNL(FormatTIFFgeneric, FormatStill):
+    """An experimental image reading class for TIFF images from a UED
+    instrument at BNL: https://www.bnl.gov/atf/capabilities/ued.php.
+
+    Set environment variable UED_BNL_TIFF to use.
+    """
+
+    def __init__(self, image_file, **kwargs):
+
+        FormatTIFFgeneric.__init__(self, image_file, **kwargs)
+        FormatStill.__init__(self, image_file, **kwargs)
+
+        return
+
+    @staticmethod
+    def understand(image_file):
+        """Check to see if this looks like a TIFF format image with a single page"""
+
+        if os.getenv("UED_BNL_TIFF") is None:
+            return False
+
+        with tifffile.TiffFile(image_file) as tif:
+            page = tif.pages[0]
+            if page.shape != (512, 512):
+                return False
+
+        return True
+
+    def _beam(self):
+        """Dummy beam, energy 200 keV"""
+
+        wavelength = 0.03569
+        return self._beam_factory.make_polarized_beam(
+            sample_to_source=(0.0, 0.0, 1.0),
+            wavelength=wavelength,
+            polarization=(0, 1, 0),
+            polarization_fraction=0.5,
+        )
+
+    def _detector(self):
+        """Dummy detector"""
+
+        pixel_size = 0.016, 0.016
+        image_size = (512, 512)
+        dyn_range = 20 # No idea what is correct
+        trusted_range = (-1, 2 ** dyn_range - 1)
+        beam_centre = [(p * i) / 2 for p, i in zip(pixel_size, image_size)]
+        d = self._detector_factory.simple(
+            "CCD", 3480, beam_centre, "+x", "-y", pixel_size, image_size, trusted_range
         )
         return d
