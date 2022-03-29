@@ -80,13 +80,17 @@ class FormatTIFFgeneric_Merlin(FormatTIFFgeneric):
     we will construct dummy objects and expect to override on import using
     site.phil.
 
-    WARNING: this format is not very specific and will pick up *any* TIFF file
+    WARNING: this format is not very specific so an environment variable,
+    QD_MERLIN_TIFF, must be set, otherwise this will pick up *any* TIFF file
     containing a single 512x512 pixel image.
     """
 
     @staticmethod
     def understand(image_file):
         """Check to see if this looks like a TIFF format image with a single page"""
+
+        if os.getenv("QD_MERLIN_TIFF") is None:
+            return False
 
         with tifffile.TiffFile(image_file) as tif:
             page = tif.pages[0]
