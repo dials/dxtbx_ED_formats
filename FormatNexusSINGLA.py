@@ -22,7 +22,6 @@ def get_static_mask(nxdetector: nxmx.NXdetector) -> tuple[flex.bool, ...]:
 
     XXX Modified from the version in dxtbx.nexus to take the pixel mask from a
     XXX "detectorSpecific" group.
-    XXX Also need to reverse the slices or dataset_as_flex chokes. No idea why.
     """
     pixel_mask = nxdetector["detectorSpecific"].get("pixel_mask")
     assert pixel_mask and pixel_mask.ndim == 2
@@ -30,9 +29,8 @@ def get_static_mask(nxdetector: nxmx.NXdetector) -> tuple[flex.bool, ...]:
 
     result = []
     for slices in all_slices:
-        reversed_slice = slices[1], slices[0]
         result.append(
-            dxtbx.format.nexus.dataset_as_flex(pixel_mask, reversed_slice) == 0
+            dxtbx.format.nexus.dataset_as_flex(pixel_mask, slices) == 0
         )
 
     return tuple(result)
@@ -67,6 +65,12 @@ class FormatNexusSINGLA(FormatNexus):
             nxinstrument = nxmx.entries[0].instruments[0]
             nxdetector = nxinstrument.detectors[0]
             nxbeam = nxinstrument.beams[0]
+
+            # There is a bug that leads to data_size being reversed. Check this
+            # file is correct
+            if tuple(nxinstrument["detector/module/data_size"]) == (1028, 1062):
+                raise ValueError(f"The data_size values are reversed in "
+                f"{self._image_file}. Please correct this file.")
 
             # The following fail because of non-existent objects
             # self._goniometer_model = dxtbx.nexus.get_dxtbx_goniometer(nxsample)
@@ -142,10 +146,7 @@ class FormatNexusSINGLA(FormatNexus):
         all_data = []
         for module_slices in dxtbx.nexus.get_detector_module_slices(nxdetector):
             slices = [slice(index, index + 1, 1)]
-            # Commented out next line as have to reverse the slices. Why?!
-            # slices.extend(module_slices)
-            slices.append(module_slices[1])
-            slices.append(module_slices[0])
+            slices.extend(module_slices)
 
             data_as_flex = dxtbx.format.nexus.dataset_as_flex(data, tuple(slices))
             # Convert a slice of a 3- or 4-dimension array to a 2D array
