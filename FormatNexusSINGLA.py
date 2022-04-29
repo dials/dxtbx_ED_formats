@@ -29,9 +29,7 @@ def get_static_mask(nxdetector: nxmx.NXdetector) -> tuple[flex.bool, ...]:
 
     result = []
     for slices in all_slices:
-        result.append(
-            dxtbx.format.nexus.dataset_as_flex(pixel_mask, slices) == 0
-        )
+        result.append(dxtbx.format.nexus.dataset_as_flex(pixel_mask, slices) == 0)
 
     return tuple(result)
 
@@ -69,8 +67,10 @@ class FormatNexusSINGLA(FormatNexus):
             # There is a bug that leads to data_size being reversed. Check this
             # file is correct
             if tuple(nxinstrument["detector/module/data_size"]) == (1028, 1062):
-                raise ValueError(f"The data_size values are reversed in "
-                f"{self._image_file}. Please correct this file.")
+                raise ValueError(
+                    f"The data_size values are reversed in "
+                    f"{self._image_file}. Please correct this file."
+                )
 
             # The following fail because of non-existent objects
             # self._goniometer_model = dxtbx.nexus.get_dxtbx_goniometer(nxsample)
