@@ -7,7 +7,7 @@ import h5py
 from libtbx import Auto
 
 import dxtbx.nexus
-from dxtbx.format.FormatNexus import FormatNexus
+from dxtbx.format.FormatNXmx import FormatNXmx
 from dxtbx.masking import GoniometerMaskerFactory
 
 from scitbx.array_family import flex
@@ -34,7 +34,7 @@ def get_static_mask(nxdetector: nxmx.NXdetector) -> tuple[flex.bool, ...]:
     return tuple(result)
 
 
-class FormatNexusSINGLA(FormatNexus):
+class FormatNexusSINGLA(FormatNXmx):
     """Read HDF5 data from the SINGLA detector that partially adheres to NeXus format.
     Much of this is copypasta from elsewhere"""
 
@@ -49,10 +49,6 @@ class FormatNexusSINGLA(FormatNexus):
         if name and ("SINGLA" in name):
             return True
         return False
-
-    def __init__(self, image_file, **kwargs):
-        """Initialise the image structure from the given file."""
-        super().__init__(image_file, **kwargs)
 
     def _start(self):
         self._static_mask = None
@@ -111,12 +107,6 @@ class FormatNexusSINGLA(FormatNexus):
             polarization=(0, 1, 0),
             polarization_fraction=0.5,
         )
-
-    def get_num_images(self) -> int:
-        return self._num_images
-
-    def get_static_mask(self, index=None, goniometer=None):
-        return self._static_mask
 
     def _detector(self):
         """Dummy detector"""
