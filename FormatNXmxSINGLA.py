@@ -9,6 +9,7 @@ from libtbx import Auto
 import dxtbx.nexus
 from dxtbx.format.FormatNXmx import FormatNXmx
 from dxtbx.masking import GoniometerMaskerFactory
+from dxtbx.masking import mask_untrusted_circle, mask_untrusted_polygon
 
 from scitbx.array_family import flex
 
@@ -27,9 +28,16 @@ def get_static_mask(nxdetector: nxmx.NXdetector) -> tuple[flex.bool, ...]:
     assert pixel_mask and pixel_mask.ndim == 2
     all_slices = dxtbx.nexus.get_detector_module_slices(nxdetector)
 
+    # Add mask for shadow of vacuum flange(?) on detector
+    mask = flex.bool(flex.grid(pixel_mask.shape), True)
+    for coord in [(201, 210), (202, 846), (836, 208), (838, 845)]:
+        mask_untrusted_circle(mask, coord[0], coord[1], 194)
+    vertices = [(7, 210), (201, 16), (836, 14), (1028, 174), (1028, 886), (838, 1039), (202, 1040), (8, 836)]
+    polygon = flex.vec2_double(vertices)
+    mask_untrusted_polygon(mask, polygon)
     result = []
     for slices in all_slices:
-        result.append(dxtbx.format.nexus.dataset_as_flex(pixel_mask, slices) == 0)
+        result.append((dxtbx.format.nexus.dataset_as_flex(pixel_mask, slices) == 0) & ~mask)
 
     return tuple(result)
 
