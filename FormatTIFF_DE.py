@@ -79,7 +79,7 @@ class FormatTIFF_DE(FormatTIFF):
 
         pixel_size = 0.013, 0.013
         image_size = 4096, 4096
-        trusted_range = (-1, 65535)
+        trusted_range = (0, 65535)
         beam_centre = [(p * i) / 2 for p, i in zip(pixel_size, image_size)]
         d = self._detector_factory.simple(
             "PAD", 700, beam_centre, "+x", "-y", pixel_size, image_size, trusted_range
