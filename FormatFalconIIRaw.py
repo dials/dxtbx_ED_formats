@@ -85,7 +85,7 @@ class FormatFalconIIRaw(Format):
 
         pixel_size = 0.028, 0.028
         image_size = 2048, 2048
-        trusted_range = (-1, 65535)
+        trusted_range = (0, 65535)
         beam_centre = [(p * i) / 2 for p, i in zip(pixel_size, image_size)]
         d = self._detector_factory.simple(
             "PAD", 2440, beam_centre, "+x", "-y", pixel_size, image_size, trusted_range
