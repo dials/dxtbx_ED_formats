@@ -121,7 +121,7 @@ class FormatCBFMiniTimepix(FormatCBFMini):
 
         # 55 mu pixels
         pixel_size = 0.055, 0.055
-        trusted_range = (-1, 65535)
+        trusted_range = (0, 65535)
         material = "Si"
         thickness = 0.3  # assume 300 mu thick. This is actually in the header too
         # so could take it from there
