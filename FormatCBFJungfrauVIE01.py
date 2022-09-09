@@ -83,8 +83,8 @@ class FormatCBFJungfrauVIE01(FormatCBF):
 
         pixel_x, pixel_y = map(float, pixel_xy)
 
-        overload = int(self._header_dictionary["Count_cutoff"].split()[0])
-        underload = -1
+        max_trusted = int(self._header_dictionary["Count_cutoff"].split()[0])
+        min_trusted = 0
 
         detector = self._detector_factory.simple(
             "PAD",
@@ -94,7 +94,7 @@ class FormatCBFJungfrauVIE01(FormatCBF):
             "-y",
             (1000 * pixel_x, 1000 * pixel_y),
             (nx, ny),
-            (underload, overload),
+            (min_trusted, max_trusted),
             [],
         )
 
