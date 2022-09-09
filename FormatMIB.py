@@ -209,7 +209,7 @@ class FormatMIB(Format):
             if "-bit" in word:
                 dyn_range = int(word.replace("-bit", ""))
                 break
-        trusted_range = (-1, 2 ** dyn_range - 1)
+        trusted_range = (0, 2 ** dyn_range - 1)
         beam_centre = [(p * i) / 2 for p, i in zip(pixel_size, image_size)]
         d = self._detector_factory.simple(
             "PAD", 2440, beam_centre, "+x", "-y", pixel_size, image_size, trusted_range
