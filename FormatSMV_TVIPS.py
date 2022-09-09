@@ -80,7 +80,7 @@ class FormatSMV_TVIPS(FormatSMVADSC):
     def _detector(self):
         pixel_size = 0.0311999992, 0.0311999992
         image_size = 2048, 2048
-        trusted_range = (-2, 65535)
+        trusted_range = (-1, 65535) # Unsure what is correct here
         gain = 5  # As suggested for processing with MOSFLM - unsure how right this is
         distance = float(self._header_dictionary["DISTANCE"])
         beam_x = float(self._header_dictionary["BEAM_CENTER_X"])
