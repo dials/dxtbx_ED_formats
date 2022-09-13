@@ -42,7 +42,7 @@ def get_static_mask(nxdetector: nxmx.NXdetector) -> tuple[flex.bool, ...]:
     return tuple(result)
 
 
-class FormatNexusSINGLA(FormatNXmx):
+class FormatNXmxSINGLA(FormatNXmx):
     """Read HDF5 data from the SINGLA detector that partially adheres to NeXus format.
     Much of this is copypasta from elsewhere"""
 
