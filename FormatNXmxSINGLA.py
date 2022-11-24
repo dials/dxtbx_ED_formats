@@ -86,6 +86,7 @@ class FormatNXmxSINGLA(FormatNXmx):
             # Salvage what we can
             self._static_mask = get_static_mask(nxdetector)
             self._bit_depth_readout = nxdetector.bit_depth_readout
+            self._saturation_value = nxdetector.saturation_value
             module = nxdetector.modules[0]
             self._image_size = tuple(map(int, module.data_size[::-1]))
             self._pixel_size = (
@@ -122,7 +123,7 @@ class FormatNXmxSINGLA(FormatNXmx):
         pixel_size = self._pixel_size
         image_size = self._image_size
         dyn_range = self._bit_depth_readout
-        trusted_range = (-1, 2**dyn_range - 1)
+        trusted_range = (-1, self._saturation_value)
         beam_centre = [(p * i) / 2 for p, i in zip(pixel_size, image_size)]
         d = self._detector_factory.simple(
             "PAD", 2440, beam_centre, "+x", "-y", pixel_size, image_size, trusted_range
