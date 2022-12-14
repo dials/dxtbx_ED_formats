@@ -173,7 +173,7 @@ class FormatTIFFgeneric_ASI(FormatTIFFgeneric):
 
         pixel_size = 0.055, 0.055
         image_size = (516, 516)
-        dyn_range = 20 # XXX ?
+        dyn_range = 20  # XXX ?
         trusted_range = (-1, 2 ** dyn_range - 1)
         beam_centre = [(p * i) / 2 for p, i in zip(pixel_size, image_size)]
         d = self._detector_factory.simple(
@@ -226,13 +226,14 @@ class FormatTIFFgeneric_FEI_Tecnai_G2(FormatTIFFgeneric):
         # 2x2 binning https://cfim.ku.dk/equipment/electron_microscopy/cm100/Veleta.pdf
         pixel_size = 0.026, 0.026
         image_size = (1024, 1024)
-        dyn_range = 14 # XXX ?
+        dyn_range = 14  # XXX ?
         trusted_range = (-1, 2 ** dyn_range - 1)
         beam_centre = [(p * i) / 2 for p, i in zip(pixel_size, image_size)]
         d = self._detector_factory.simple(
             "PAD", 2440, beam_centre, "+x", "-y", pixel_size, image_size, trusted_range
         )
         return d
+
 
 class FormatTIFFgeneric_Medipix(FormatTIFFgeneric):
     """An experimental image reading class for TIFF images from a Medipix
@@ -328,7 +329,7 @@ class FormatTIFF_UED(FormatTIFFgeneric, FormatStill):
 
         pixel_size = 0.060, 0.060
         image_size = (1300, 1340)
-        dyn_range = 20 # No idea what is correct
+        dyn_range = 20  # No idea what is correct
         trusted_range = (-1, 2 ** dyn_range - 1)
         beam_centre = [(p * i) / 2 for p, i in zip(pixel_size, image_size)]
         d = self._detector_factory.simple(
@@ -381,7 +382,7 @@ class FormatTIFF_UED_BNL(FormatTIFFgeneric, FormatStill):
 
         pixel_size = 0.016, 0.016
         image_size = (512, 512)
-        dyn_range = 20 # No idea what is correct
+        dyn_range = 20  # No idea what is correct
         trusted_range = (-1, 2 ** dyn_range - 1)
         beam_centre = [(p * i) / 2 for p, i in zip(pixel_size, image_size)]
         d = self._detector_factory.simple(

@@ -3,6 +3,7 @@ from __future__ import annotations
 import math
 
 import h5py
+import nxmx
 
 from libtbx import Auto
 
@@ -32,12 +33,23 @@ def get_static_mask(nxdetector: nxmx.NXdetector) -> tuple[flex.bool, ...]:
     mask = flex.bool(flex.grid(pixel_mask.shape), True)
     for coord in [(201, 210), (202, 846), (836, 208), (838, 845)]:
         mask_untrusted_circle(mask, coord[0], coord[1], 194)
-    vertices = [(7, 210), (201, 16), (836, 14), (1028, 174), (1028, 886), (838, 1039), (202, 1040), (8, 836)]
+    vertices = [
+        (7, 210),
+        (201, 16),
+        (836, 14),
+        (1028, 174),
+        (1028, 886),
+        (838, 1039),
+        (202, 1040),
+        (8, 836),
+    ]
     polygon = flex.vec2_double(vertices)
     mask_untrusted_polygon(mask, polygon)
     result = []
     for slices in all_slices:
-        result.append((dxtbx.format.nexus.dataset_as_flex(pixel_mask, slices) == 0) & ~mask)
+        result.append(
+            (dxtbx.format.nexus.dataset_as_flex(pixel_mask, slices) == 0) & ~mask
+        )
 
     return tuple(result)
 
@@ -51,9 +63,7 @@ class FormatNXmxSINGLA(FormatNXmx):
     @staticmethod
     def understand(image_file):
         with h5py.File(image_file, swmr=True) as handle:
-            name = dxtbx.nexus.nxmx.h5str(
-                handle["/entry/instrument/detector/description"][()]
-            )
+            name = nxmx.h5str(handle["/entry/instrument/detector/description"][()])
         if name and ("SINGLA" in name):
             return True
         return False
@@ -62,9 +72,9 @@ class FormatNXmxSINGLA(FormatNXmx):
         self._static_mask = None
 
         with h5py.File(self._image_file, swmr=True) as fh:
-            nxmx = dxtbx.nexus.nxmx.NXmx(fh)
-            nxsample = nxmx.entries[0].samples[0]
-            nxinstrument = nxmx.entries[0].instruments[0]
+            nxmx_obj = nxmx.NXmx(fh)
+            nxsample = nxmx_obj.entries[0].samples[0]
+            nxinstrument = nxmx_obj.entries[0].instruments[0]
             nxdetector = nxinstrument.detectors[0]
             nxbeam = nxinstrument.beams[0]
 
@@ -94,7 +104,7 @@ class FormatNXmxSINGLA(FormatNXmx):
                 module.slow_pixel_direction[()].to("mm").magnitude.item(),
             )
 
-            nxdata = nxmx.entries[0].data[0]
+            nxdata = nxmx_obj.entries[0].data[0]
             if nxdata.signal:
                 data = nxdata[nxdata.signal]
             else:
@@ -134,9 +144,9 @@ class FormatNXmxSINGLA(FormatNXmx):
         if self._cached_file_handle is None:
             self._cached_file_handle = h5py.File(self._image_file, swmr=True)
 
-        nxmx = dxtbx.nexus.nxmx.NXmx(self._cached_file_handle)
-        nxdata = nxmx.entries[0].data[0]
-        nxdetector = nxmx.entries[0].instruments[0].detectors[0]
+        nxmx_obj = nxmx.NXmx(self._cached_file_handle)
+        nxdata = nxmx_obj.entries[0].data[0]
+        nxdetector = nxmx_obj.entries[0].instruments[0].detectors[0]
 
         if nxdata.signal:
             data = nxdata[nxdata.signal]
@@ -157,9 +167,9 @@ class FormatNXmxSINGLA(FormatNXmx):
             # if 32 bit then it is a signed int, I think if 8, 16 then it is
             # unsigned with the highest two values assigned as masking values
             if self._bit_depth_readout == 32:
-                top = 2**31
+                top = 2 ** 31
             else:
-                top = 2**self._bit_depth_readout
+                top = 2 ** self._bit_depth_readout
             for data in raw_data:
                 d1d = data.as_1d()
                 d1d.set_selected(d1d == top - 1, -1)
