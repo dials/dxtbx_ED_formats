@@ -35,7 +35,7 @@ class FormatSMVFalcon4(FormatSMVADSC):
         # according to Thermo Fisher
         binning = {"1x1": 1, "2x2": 2}.get(self._header_dictionary.get("BIN"), 1)
         gain = float(self._header_dictionary.get("GAIN", 32.0))
-        saturation = 8000 * binning ** 2 # Guesswork
+        saturation = 8000 * binning ** 2  # Guesswork
         trusted_range = (0, saturation)
         pedestal = float(self._header_dictionary.get("IMAGE_PEDESTAL", 0))
 

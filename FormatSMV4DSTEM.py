@@ -6,6 +6,7 @@ import os
 
 from dxtbx.format.FormatSMVADSC import FormatSMVADSC
 
+
 class FormatSMV4DSTEM(FormatSMVADSC):
     @staticmethod
     def understand(image_file):
@@ -29,7 +30,7 @@ class FormatSMV4DSTEM(FormatSMVADSC):
         # Assume GAIN=1 as counting
         binning = {"1x1": 1, "2x2": 2}.get(self._header_dictionary.get("BIN"), 1)
         gain = 1.0
-        saturation = 65535 #?
+        saturation = 65535  # ?
         trusted_range = (-1, saturation)
         pedestal = float(self._header_dictionary.get("IMAGE_PEDESTAL", 0))
 
