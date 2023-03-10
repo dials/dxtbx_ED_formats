@@ -92,9 +92,9 @@ class FormatCBFMiniEigerQuadro(FormatCBFMiniEiger):
             overload = int(self._cif_header_dictionary["Count_cutoff"].split()[0])
         else:
             # missing from data transformed with GPhL converter - dials#376
-            overload = 100000000
+            overload = 1048576
         if overload == 0:
-            overload = 100000000
+            overload = 1048576
 
         minimum_trusted_value = 0
 
