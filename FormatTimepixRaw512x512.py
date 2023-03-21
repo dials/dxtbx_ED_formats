@@ -110,7 +110,7 @@ class FormatTimepixRaw512x512(Format):
         # 55 mu pixels
         pixel_size = 0.055, 0.055
         image_size = 512, 512
-        trusted_range = (-1, 65535)
+        trusted_range = (0, 65535)
         material = "Si"
         thickness = 0.3  # assume 300 mu thick
 

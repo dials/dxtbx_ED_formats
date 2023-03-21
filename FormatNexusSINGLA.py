@@ -143,6 +143,9 @@ class FormatNexusSINGLA(FormatNexus):
         pixel_size = self._pixel_size
         image_size = self._image_size
         dyn_range = self._bit_depth_readout
+        # trusted_range is not updated here following https://github.com/cctbx/dxtbx/pull/536
+        # because this Format class is specifically for use with DIALS <= 3.10, in which
+        # those changes are not present.
         trusted_range = (-1, self._saturation_value)
         beam_centre = [(p * i) / 2 for p, i in zip(pixel_size, image_size)]
         d = self._detector_factory.simple(

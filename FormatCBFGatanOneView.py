@@ -103,10 +103,10 @@ class FormatCBFGatanOneView(FormatCBF):
         nx = int(self._cif_header_dictionary["X-Binary-Size-Fastest-Dimension"])
         ny = int(self._cif_header_dictionary["X-Binary-Size-Second-Dimension"])
 
-        overload = dxtbx_overload_scale * int(
+        max_trusted = dxtbx_overload_scale * int(
             self._cif_header_dictionary["Count_cutoff"].split()[0]
         )
-        underload = -1
+        min_trusted = 0
 
         detector = self._detector_factory.simple(
             "PAD",
@@ -116,7 +116,7 @@ class FormatCBFGatanOneView(FormatCBF):
             "-y",
             (1000 * pixel_x, 1000 * pixel_y),
             (nx, ny),
-            (underload, overload),
+            (min_trusted, max_trusted),
             [],
         )
 

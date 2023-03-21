@@ -30,8 +30,9 @@ class FormatSMV4DSTEM(FormatSMVADSC):
         # Assume GAIN=1 as counting
         binning = {"1x1": 1, "2x2": 2}.get(self._header_dictionary.get("BIN"), 1)
         gain = 1.0
-        saturation = 65535  # ?
-        trusted_range = (-1, saturation)
+        saturation = 65535 #?
+        trusted_range = (0, saturation)
+
         pedestal = float(self._header_dictionary.get("IMAGE_PEDESTAL", 0))
 
         return self._detector_factory.simple(
