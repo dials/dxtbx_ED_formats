@@ -96,7 +96,6 @@ class FormatMRC(Format):
         https://github.com/fei-company/FeiImageFileIO/ courtesy of Lingbo Yu.
         """
 
-
         _sizeof_dtypes = {"i": 4, "q": 8, "f": 4, "d": 8, "?": 1, "s": 16}
         ext_header_offset = {
             "alphaTilt": (100, "d"),
@@ -152,7 +151,8 @@ class FormatMRC(Format):
                 else:
                     ext_header[key] = b"".join(
                         struct.unpack(
-                            fmt * _sizeof_dtypes[fmt], f.read(_sizeof_dtypes[fmt]),
+                            fmt * _sizeof_dtypes[fmt],
+                            f.read(_sizeof_dtypes[fmt]),
                         )
                     ).rstrip(b"\x00")
 

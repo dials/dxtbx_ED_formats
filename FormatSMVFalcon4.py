@@ -1,5 +1,9 @@
-"""Format class to recognise images from a camera used for 4D-STEM measurements
-(https://doi.org/10.1017/S1431927620019753), which have been converted to SMV"""
+"""Format class to recognise images from a ThermoFisher Falcon 4 detector that
+have been converted to SMV with partial metadata. Actually, not much is specific
+here to the Falcon 4 detector, apart from a suggested value of the gain given
+by Max Clabbers. This is apparently relevant for the detector in 'electron
+counting' mode. This Format class must be activated by an environment variable
+to avoid clashes with other formats."""
 
 from __future__ import absolute_import, division, print_function
 import os
@@ -7,12 +11,12 @@ import os
 from dxtbx.format.FormatSMVADSC import FormatSMVADSC
 
 
-class FormatSMV4DSTEM(FormatSMVADSC):
+class FormatSMVFalcon4(FormatSMVADSC):
     @staticmethod
     def understand(image_file):
 
         # Allow this class to override FormatSMVADSC with an environment variable
-        if "FORCE_SMV_AS_4DSTEM" in os.environ:
+        if "FORCE_SMV_AS_FALCON4" in os.environ:
             return True
 
         return False
@@ -27,12 +31,12 @@ class FormatSMV4DSTEM(FormatSMVADSC):
             float(self._header_dictionary["SIZE1"]),
             float(self._header_dictionary["SIZE2"]),
         )
-        # Assume GAIN=1 as counting
+        # Ceta has gain of > 26 and saturates at about 8000.0 for binning=1
+        # according to Thermo Fisher
         binning = {"1x1": 1, "2x2": 2}.get(self._header_dictionary.get("BIN"), 1)
-        gain = 1.0
-        saturation = 65535 #?
+        gain = float(self._header_dictionary.get("GAIN", 32.0))
+        saturation = 8000 * binning ** 2  # Guesswork
         trusted_range = (0, saturation)
-
         pedestal = float(self._header_dictionary.get("IMAGE_PEDESTAL", 0))
 
         return self._detector_factory.simple(
@@ -53,6 +57,11 @@ class FormatSMV4DSTEM(FormatSMVADSC):
         """Return a simple model for an unpolarised beam."""
 
         wavelength = float(self._header_dictionary["WAVELENGTH"])
+        # Some images have wavelength incorrectly set to zero. In those cases
+        # default to 0.0197 (300 keV electrons)
+        if wavelength == 0.0:
+            wavelength = 0.0197
+
         return self._beam_factory.make_polarized_beam(
             sample_to_source=(0.0, 0.0, 1.0),
             wavelength=wavelength,
