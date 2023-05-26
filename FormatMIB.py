@@ -120,7 +120,6 @@ def processedMib(mib_prop):
     offset = mib_prop.offset * merlin_frame_dtype.itemsize
 
     # map the file to memory, if a numpy or memmap array is given, work with it as with a buffer
-    # buffer needs to have the exact structure of MIB file, if it is read from TCPIP interface it needs to drop first 15 bytes which describe the stream size. Also watch for the coma in front of the stream.
     if type(mib_prop.path) == str:
         data = np.memmap(
             mib_prop.path,
@@ -255,6 +254,7 @@ class FormatMIBimages(FormatMIB):
         fname = os.path.split(self._image_file)[-1]
         index = int(fname.split("_")[-1].split(".")[0])
         return ScanFactory.make_scan((index, index), 0.0, (0, 1), {index: 0})
+
 
 class FormatMIBstack(FormatMultiImage, FormatMIB):
     @staticmethod
