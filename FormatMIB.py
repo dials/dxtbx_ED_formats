@@ -2,6 +2,7 @@
 from a Quantum Detectors Merlin device in MIB file format"""
 
 from dxtbx.format.Format import Format
+from dxtbx.format.FormatMultiImage import FormatMultiImage
 from dxtbx.model import ScanFactory
 from dxtbx.model.detector import Detector
 import numpy as np
@@ -119,7 +120,6 @@ def processedMib(mib_prop):
     offset = mib_prop.offset * merlin_frame_dtype.itemsize
 
     # map the file to memory, if a numpy or memmap array is given, work with it as with a buffer
-    # buffer needs to have the exact structure of MIB file, if it is read from TCPIP interface it needs to drop first 15 bytes which describe the stream size. Also watch for the coma in front of the stream.
     if type(mib_prop.path) == str:
         data = np.memmap(
             mib_prop.path,
@@ -154,20 +154,21 @@ class FormatMIB(Format):
 
         return head[0] == "MQ1"
 
-    def _start(self):
+    @staticmethod
+    def _mib_prop(image_file, show=False):
         """Open the image file and read the header into a properties object"""
 
-        with open(self._image_file, "rb") as f:
+        with open(image_file, "rb") as f:
             head = f.read(384).decode().split(",")
             f.seek(0, os.SEEK_END)
             filesize = f.tell()
 
         # parse header info
-        mib_prop = get_mib_properties(head, self._image_file)
-        mib_prop.path = self._image_file
+        mib_prop = get_mib_properties(head, image_file)
+        mib_prop.path = image_file
 
         # correct for buffer/file logic
-        if type(self._image_file) == str:
+        if type(image_file) == str:
             mib_prop.buffer = False
 
         # find the size of the data
@@ -182,8 +183,14 @@ class FormatMIB(Format):
         mib_prop.scan_size = mib_prop.numberOfFramesInFile
         mib_prop.xy = mib_prop.numberOfFramesInFile
 
-        # show file properties
-        # mib_prop.show()
+        if show:
+            mib_prop.show()
+
+        return mib_prop
+
+    def _start(self):
+
+        mib_prop = self._mib_prop(self._image_file)
 
         self.mib_prop = mib_prop
         self.mib_data = processedMib(mib_prop)
@@ -211,8 +218,11 @@ class FormatMIB(Format):
                 break
         trusted_range = (0, 2 ** dyn_range - 1)
         beam_centre = [(p * i) / 2 for p, i in zip(pixel_size, image_size)]
+        # Following discussion with QD, I think the origin of the image array
+        # is at the bottom left (as viewed by dials.image_viewer), with fast
+        # increasing +X and slow increasing +Y. See https://github.com/dials/dxtbx_ED_formats/pull/11
         d = self._detector_factory.simple(
-            "PAD", 2440, beam_centre, "+x", "-y", pixel_size, image_size, trusted_range
+            "PAD", 2440, beam_centre, "+x", "+y", pixel_size, image_size, trusted_range
         )
         return d
 
@@ -227,9 +237,80 @@ class FormatMIB(Format):
             polarization_fraction=0.5,
         )
 
+
+class FormatMIBimages(FormatMIB):
+    @staticmethod
+    def understand(image_file):
+        mib_prop = FormatMIB._mib_prop(image_file)
+        return mib_prop.numberOfFramesInFile == 1
+
+    def __init__(self, image_file, **kwargs):
+        from dxtbx import IncorrectFormatError
+
+        if not self.understand(image_file):
+            raise IncorrectFormatError(self, image_file)
+        Format.__init__(self, image_file, **kwargs)
+
     def _scan(self):
         """Dummy scan for this image"""
 
         fname = os.path.split(self._image_file)[-1]
         index = int(fname.split("_")[-1].split(".")[0])
         return ScanFactory.make_scan((index, index), 0.0, (0, 1), {index: 0})
+
+
+class FormatMIBstack(FormatMultiImage, FormatMIB):
+    @staticmethod
+    def understand(image_file):
+        mib_prop = FormatMIB._mib_prop(image_file)
+        return mib_prop.numberOfFramesInFile > 1
+
+    def __init__(self, image_file, **kwargs):
+        from dxtbx import IncorrectFormatError
+
+        if not self.understand(image_file):
+            raise IncorrectFormatError(self, image_file)
+        FormatMultiImage.__init__(self, **kwargs)
+        Format.__init__(self, image_file, **kwargs)
+
+    def get_num_images(self):
+        return self.mib_prop.numberOfFramesInFile
+
+    def get_goniometer(self, index=None):
+        return Format.get_goniometer(self)
+
+    def get_detector(self, index=None):
+        return Format.get_detector(self)
+
+    def get_beam(self, index=None):
+        return Format.get_beam(self)
+
+    def get_scan(self, index=None):
+        if index == None:
+            return Format.get_scan(self)
+        else:
+            scan = Format.get_scan(self)
+            return scan[index]
+
+    def get_image_file(self, index=None):
+        return Format.get_image_file(self)
+
+    def get_raw_data(self, index):
+        return flex.double(self.mib_data[index, ...].astype("double"))
+
+    def _scan(self):
+        """Scan model for this stack, filling out any unavailable items with
+        dummy values"""
+
+        alpha = 0.0
+        dalpha = 1.0
+        exposure = 0.0
+
+        oscillation = (alpha, dalpha)
+        nframes = self.get_num_images()
+        image_range = (1, nframes)
+        epochs = [0] * nframes
+
+        return self._scan_factory.make_scan(
+            image_range, exposure, oscillation, epochs, deg=True
+        )
