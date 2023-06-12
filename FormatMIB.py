@@ -218,8 +218,11 @@ class FormatMIB(Format):
                 break
         trusted_range = (0, 2 ** dyn_range - 1)
         beam_centre = [(p * i) / 2 for p, i in zip(pixel_size, image_size)]
+        # Following discussion with QD, I think the origin of the image array
+        # is at the bottom left (as viewed by dials.image_viewer), with fast
+        # increasing +X and slow increasing +Y. See https://github.com/dials/dxtbx_ED_formats/pull/11
         d = self._detector_factory.simple(
-            "PAD", 2440, beam_centre, "+x", "-y", pixel_size, image_size, trusted_range
+            "PAD", 2440, beam_centre, "+x", "+y", pixel_size, image_size, trusted_range
         )
         return d
 
