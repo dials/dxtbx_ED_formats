@@ -289,6 +289,46 @@ class FormatTIFFgeneric_Medipix(FormatTIFFgeneric):
         )
         return d
 
+class FormatTIFFgeneric_BlochwaveSim(FormatTIFFgeneric):
+    """Format class to process headerless TIFF images produced by Tarik Drevon's
+    Bloch wave simulation. Use environment variable BLOCHWAVE_TIFF to activate,
+    and assumes 2048^2 pixels.
+    """
+
+    @staticmethod
+    def understand(image_file):
+        if os.getenv("BLOCHWAVE_TIFF") is None:
+            return False
+
+        with tifffile.TiffFile(image_file) as tif:
+            page = tif.pages[0]
+            if page.shape != (2048, 2048):
+                return False
+
+        return True
+
+    def _goniometer(self):
+        return self._goniometer_factory.known_axis((1, 0, 0))
+
+    def _beam(self):
+        wavelength = 0.02508
+        return self._beam_factory.make_polarized_beam(
+            sample_to_source=(0.0, 0.0, 1.0),
+            wavelength=wavelength,
+            polarization=(0, 1, 0),
+            polarization_fraction=0.5,
+        )
+
+    def _detector(self):
+        pixel_size = 0.028, 0.028
+        image_size = (2048, 2048)
+        dyn_range = 16
+        trusted_range = (-1, 2 ** dyn_range - 1)
+        beam_centre = [(p * i) / 2 for p, i in zip(pixel_size, image_size)]
+        d = self._detector_factory.simple(
+            "PAD", 834, beam_centre, "+x", "-y", pixel_size, image_size, trusted_range
+        )
+        return d
 
 class FormatTIFF_UED(FormatTIFFgeneric, FormatStill):
     """An experimental image reading class for TIFF images from a UED
