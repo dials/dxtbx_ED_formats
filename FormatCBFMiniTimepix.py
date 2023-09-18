@@ -25,6 +25,7 @@ from dxtbx.format.FormatCBFMini import FormatCBFMini
 from dxtbx.model.detector import Detector
 from dxtbx.model import ScanFactory
 from scitbx.array_family import flex
+from dxtbx.model.beam import Probe
 
 
 class FormatCBFMiniTimepix(FormatCBFMini):
@@ -81,6 +82,7 @@ class FormatCBFMiniTimepix(FormatCBFMini):
             wavelength=wavelength,
             polarization=(0, 1, 0),
             polarization_fraction=0.5,
+            probe=Probe.electron,
         )
 
     def _scan(self):

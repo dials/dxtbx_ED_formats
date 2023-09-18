@@ -4,6 +4,7 @@ import os
 
 from dxtbx.format.FormatCBF import FormatCBF
 from dxtbx.model import ScanFactory
+from dxtbx.model.beam import Probe
 
 
 class FormatCBFJungfrauVIE01(FormatCBF):
@@ -127,6 +128,7 @@ class FormatCBFJungfrauVIE01(FormatCBF):
             wavelength=wavelength,
             polarization=(0, 1, 0),
             polarization_fraction=0.5,
+            probe=Probe.electron,
         )
 
     def _scan(self):

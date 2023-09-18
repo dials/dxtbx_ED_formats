@@ -11,6 +11,7 @@ import dxtbx.nexus
 from dxtbx.format.FormatNexus import FormatNexus
 from dxtbx.masking import GoniometerMaskerFactory
 from dxtbx.masking import mask_untrusted_circle, mask_untrusted_polygon
+from dxtbx.model.beam import Probe
 
 from scitbx.array_family import flex
 
@@ -129,6 +130,7 @@ class FormatNexusSINGLA(FormatNexus):
             wavelength=wavelength,
             polarization=(0, 1, 0),
             polarization_fraction=0.5,
+            probe=Probe.electron,
         )
 
     def get_num_images(self) -> int:

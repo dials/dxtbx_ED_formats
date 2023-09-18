@@ -13,6 +13,7 @@ from dxtbx.format.Format import Format
 from dxtbx.format.FormatHDF5 import FormatHDF5
 from dxtbx.format.FormatMultiImage import FormatMultiImage
 from dxtbx import IncorrectFormatError
+from dxtbx.model.beam import Probe
 
 
 def get_metadata(metadata):
@@ -209,6 +210,7 @@ class FormatVelox(FormatHDF5):
             wavelength=self._header_dictionary["wavelength"],
             polarization=(0, 1, 0),
             polarization_fraction=0.5,
+            probe=Probe.electron,
         )
 
     def get_num_images(self):

@@ -12,6 +12,7 @@ import os
 import logging
 
 from dxtbx.format.FormatSEReBIC import FormatSEReBIC
+from dxtbx.model.beam import Probe
 
 logger = logging.getLogger("dials")
 

@@ -6,6 +6,7 @@ import os
 
 from dxtbx.format.FormatCBFMiniEiger import FormatCBFMiniEiger
 from dxtbx.model import SimplePxMmStrategy
+from dxtbx.model.beam import Probe
 
 
 class FormatCBFMiniEigerQuadro(FormatCBFMiniEiger):
@@ -47,6 +48,7 @@ class FormatCBFMiniEigerQuadro(FormatCBFMiniEiger):
             wavelength=wavelength,
             polarization=(0, 1, 0),
             polarization_fraction=0.5,
+            probe=Probe.electron,
         )
 
     def _detector(self):

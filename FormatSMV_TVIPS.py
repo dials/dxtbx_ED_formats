@@ -20,6 +20,7 @@ import time
 
 from dxtbx.format.FormatSMVADSC import FormatSMVADSC
 from dxtbx.model.detector import Detector
+from dxtbx.model.beam import Probe
 
 
 class FormatSMV_TVIPS(FormatSMVADSC):
@@ -109,6 +110,7 @@ class FormatSMV_TVIPS(FormatSMVADSC):
             wavelength=wavelength,
             polarization=(0, 1, 0),
             polarization_fraction=0.5,
+            probe=Probe.electron,
         )
 
     def get_raw_data(self):

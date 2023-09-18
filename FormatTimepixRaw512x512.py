@@ -18,6 +18,7 @@ import os
 from dxtbx.format.Format import Format
 from dxtbx.model import ScanFactory
 from dxtbx.model.detector import Detector
+from dxtbx.model.beam import Probe
 
 
 class FormatTimepixRaw512x512(Format):
@@ -225,6 +226,7 @@ class FormatTimepixRaw512x512(Format):
             wavelength=wavelength,
             polarization=(0, 1, 0),
             polarization_fraction=0.5,
+            probe=Probe.electron,
         )
 
     def _scan(self):

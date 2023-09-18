@@ -8,6 +8,7 @@ from dxtbx.model.detector import Detector
 import numpy as np
 import os
 from scitbx.array_family import flex
+from dxtbx.model.beam import Probe
 
 # The mib_properties class and get_mib_properties, processedMib and loadMib
 # functions are provided by Quantum Detectors Ltd. as example code (without
@@ -235,6 +236,7 @@ class FormatMIB(Format):
             wavelength=wavelength,
             polarization=(0, 1, 0),
             polarization_fraction=0.5,
+            probe=Probe.electron,
         )
 
 

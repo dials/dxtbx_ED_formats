@@ -8,6 +8,7 @@ from dxtbx.format.FormatStill import FormatStill
 from scitbx.array_family import flex
 import re
 from dxtbx import flumpy
+from dxtbx.model.beam import Probe
 
 try:
     import tifffile
@@ -114,6 +115,7 @@ class FormatTIFFgeneric_Merlin(FormatTIFFgeneric):
             wavelength=wavelength,
             polarization=(0, 1, 0),
             polarization_fraction=0.5,
+            probe=Probe.electron,
         )
 
     def _detector(self):

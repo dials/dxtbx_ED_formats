@@ -5,6 +5,7 @@ from __future__ import absolute_import, division, print_function
 import os
 
 from dxtbx.format.FormatSMVADSC import FormatSMVADSC
+from dxtbx.model.beam import Probe
 
 
 class FormatSMV4DSTEM(FormatSMVADSC):
@@ -58,4 +59,5 @@ class FormatSMV4DSTEM(FormatSMVADSC):
             wavelength=wavelength,
             polarization=(0, 1, 0),
             polarization_fraction=0.5,
+            probe=Probe.electron,
         )

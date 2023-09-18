@@ -6,6 +6,7 @@ and to set the detector gain to something sensible"""
 from __future__ import absolute_import, division, print_function
 
 from dxtbx.format.FormatSMVADSC import FormatSMVADSC
+from dxtbx.model.beam import Probe
 
 
 class FormatSMVFalconIII(FormatSMVADSC):
@@ -41,6 +42,7 @@ class FormatSMVFalconIII(FormatSMVADSC):
             wavelength=wavelength,
             polarization=(0, 1, 0),
             polarization_fraction=0.5,
+            probe=Probe.electron,
         )
 
 
