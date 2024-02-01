@@ -1,16 +1,19 @@
 """A format class for generic TIFF images plus implementations for specific
 detectors producing electron diffraction data"""
 
-import os
+from __future__ import annotations
+
 import io
+import os
+import re
+
+from dxtbx import flumpy
 from dxtbx.format.Format import Format
 from dxtbx.format.FormatStill import FormatStill
-from scitbx.array_family import flex
-import re
-from dxtbx import flumpy
+from dxtbx.masking import mask_untrusted_rectangle
 from dxtbx.model.beam import Probe
 from dxtbx.model.detector import Detector
-from dxtbx.masking import mask_untrusted_rectangle
+from scitbx.array_family import flex
 
 try:
     import tifffile
@@ -126,7 +129,7 @@ class FormatTIFFgeneric_Merlin(FormatTIFFgeneric):
         pixel_size = 0.055, 0.055
         image_size = (512, 512)
         dyn_range = 12
-        trusted_range = (0, 2 ** dyn_range - 1)
+        trusted_range = (0, 2**dyn_range - 1)
         beam_centre = [(p * i) / 2 for p, i in zip(pixel_size, image_size)]
         d = self._detector_factory.simple(
             "PAD", 2440, beam_centre, "+x", "-y", pixel_size, image_size, trusted_range
@@ -177,7 +180,7 @@ class FormatTIFFgeneric_Timepix512(FormatTIFFgeneric):
         cntr = matrix.col((0.0, 0.0, -100.0))
 
         # shifts to go from the centre to the origin - outer pixels are 0.165 mm
-        self._array_size = (512,512)
+        self._array_size = (512, 512)
         off_x = (self._array_size[0] / 2 - 2) * pixel_size[0]
         off_x += 2 * 0.165
         shift_x = -1.0 * fast * off_x
@@ -306,6 +309,7 @@ class FormatTIFFgeneric_Timepix512(FormatTIFFgeneric):
 
         return tuple(self._raw_data)
 
+
 class FormatTIFFgeneric_Timepix516(FormatTIFFgeneric):
     """An experimental image reading class for TIFF images from a Timepix
     detectors with 516x516 pixels where the central cross is masked out.
@@ -362,7 +366,7 @@ class FormatTIFFgeneric_Timepix516(FormatTIFFgeneric):
         pixel_size = 0.055, 0.055
         image_size = (516, 516)
         dyn_range = 12
-        trusted_range = (0, 2 ** dyn_range - 1)
+        trusted_range = (0, 2**dyn_range - 1)
         beam_centre = [(p * i) / 2 for p, i in zip(pixel_size, image_size)]
         d = self._detector_factory.simple(
             "PAD", 2440, beam_centre, "+x", "-y", pixel_size, image_size, trusted_range
@@ -414,7 +418,7 @@ class FormatTIFFgeneric_ASI(FormatTIFFgeneric):
         pixel_size = 0.055, 0.055
         image_size = (516, 516)
         dyn_range = 20  # XXX ?
-        trusted_range = (-1, 2 ** dyn_range - 1)
+        trusted_range = (-1, 2**dyn_range - 1)
         beam_centre = [(p * i) / 2 for p, i in zip(pixel_size, image_size)]
         d = self._detector_factory.simple(
             "PAD", 2440, beam_centre, "+x", "-y", pixel_size, image_size, trusted_range
@@ -467,7 +471,7 @@ class FormatTIFFgeneric_FEI_Tecnai_G2(FormatTIFFgeneric):
         pixel_size = 0.026, 0.026
         image_size = (1024, 1024)
         dyn_range = 14  # XXX ?
-        trusted_range = (-1, 2 ** dyn_range - 1)
+        trusted_range = (-1, 2**dyn_range - 1)
         beam_centre = [(p * i) / 2 for p, i in zip(pixel_size, image_size)]
         d = self._detector_factory.simple(
             "PAD", 2440, beam_centre, "+x", "-y", pixel_size, image_size, trusted_range
@@ -522,12 +526,13 @@ class FormatTIFFgeneric_Medipix(FormatTIFFgeneric):
         pixel_size = 0.055, 0.055
         image_size = (514, 514)
         dyn_range = 16
-        trusted_range = (-1, 2 ** dyn_range - 1)
+        trusted_range = (-1, 2**dyn_range - 1)
         beam_centre = [(p * i) / 2 for p, i in zip(pixel_size, image_size)]
         d = self._detector_factory.simple(
             "PAD", 2440, beam_centre, "+x", "-y", pixel_size, image_size, trusted_range
         )
         return d
+
 
 class FormatTIFFgeneric_BlochwaveSim(FormatTIFFgeneric):
     """Format class to process headerless TIFF images produced by Tarik Drevon's
@@ -563,12 +568,13 @@ class FormatTIFFgeneric_BlochwaveSim(FormatTIFFgeneric):
         pixel_size = 0.028, 0.028
         image_size = (2048, 2048)
         dyn_range = 16
-        trusted_range = (-1, 2 ** dyn_range - 1)
+        trusted_range = (-1, 2**dyn_range - 1)
         beam_centre = [(p * i) / 2 for p, i in zip(pixel_size, image_size)]
         d = self._detector_factory.simple(
             "PAD", 834, beam_centre, "+x", "-y", pixel_size, image_size, trusted_range
         )
         return d
+
 
 class FormatTIFF_UED(FormatTIFFgeneric, FormatStill):
     """An experimental image reading class for TIFF images from a UED
@@ -610,7 +616,7 @@ class FormatTIFF_UED(FormatTIFFgeneric, FormatStill):
         pixel_size = 0.060, 0.060
         image_size = (1300, 1340)
         dyn_range = 20  # No idea what is correct
-        trusted_range = (-1, 2 ** dyn_range - 1)
+        trusted_range = (-1, 2**dyn_range - 1)
         beam_centre = [(p * i) / 2 for p, i in zip(pixel_size, image_size)]
         d = self._detector_factory.simple(
             "PAD", 2440, beam_centre, "+x", "-y", pixel_size, image_size, trusted_range
@@ -663,7 +669,7 @@ class FormatTIFF_UED_BNL(FormatTIFFgeneric, FormatStill):
         pixel_size = 0.016, 0.016
         image_size = (512, 512)
         dyn_range = 20  # No idea what is correct
-        trusted_range = (-1, 2 ** dyn_range - 1)
+        trusted_range = (-1, 2**dyn_range - 1)
         beam_centre = [(p * i) / 2 for p, i in zip(pixel_size, image_size)]
         d = self._detector_factory.simple(
             "CCD", 3480, beam_centre, "+x", "-y", pixel_size, image_size, trusted_range

@@ -11,14 +11,14 @@
 from a detector with a 2x2 array of Timepix modules, used in electron
 diffraction experiments"""
 
-from __future__ import absolute_import, division, print_function
+from __future__ import annotations
 
 import os
 
 from dxtbx.format.Format import Format
 from dxtbx.model import ScanFactory
-from dxtbx.model.detector import Detector
 from dxtbx.model.beam import Probe
+from dxtbx.model.detector import Detector
 
 
 class FormatTimepixRaw512x512(Format):

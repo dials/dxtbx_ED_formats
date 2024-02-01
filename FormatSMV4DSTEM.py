@@ -1,7 +1,8 @@
 """Format class to recognise images from a camera used for 4D-STEM measurements
 (https://doi.org/10.1017/S1431927620019753), which have been converted to SMV"""
 
-from __future__ import absolute_import, division, print_function
+from __future__ import annotations
+
 import os
 
 from dxtbx.format.FormatSMVADSC import FormatSMVADSC
@@ -31,7 +32,7 @@ class FormatSMV4DSTEM(FormatSMVADSC):
         # Assume GAIN=1 as counting
         binning = {"1x1": 1, "2x2": 2}.get(self._header_dictionary.get("BIN"), 1)
         gain = 1.0
-        saturation = 65535 #?
+        saturation = 65535  # ?
         trusted_range = (0, saturation)
 
         pedestal = float(self._header_dictionary.get("IMAGE_PEDESTAL", 0))

@@ -1,14 +1,18 @@
 """Experimental implementation of a format class to recognise raw images
 from a Quantum Detectors Merlin device in MIB file format"""
 
+from __future__ import annotations
+
+import os
+
+import numpy as np
 from dxtbx.format.Format import Format
 from dxtbx.format.FormatMultiImage import FormatMultiImage
 from dxtbx.model import ScanFactory
-from dxtbx.model.detector import Detector
-import numpy as np
-import os
-from scitbx.array_family import flex
 from dxtbx.model.beam import Probe
+from dxtbx.model.detector import Detector
+from scitbx.array_family import flex
+
 
 # The mib_properties class and get_mib_properties, processedMib and loadMib
 # functions are provided by Quantum Detectors Ltd. as example code (without
@@ -217,7 +221,7 @@ class FormatMIB(Format):
             if "-bit" in word:
                 dyn_range = int(word.replace("-bit", ""))
                 break
-        trusted_range = (0, 2 ** dyn_range - 1)
+        trusted_range = (0, 2**dyn_range - 1)
         beam_centre = [(p * i) / 2 for p, i in zip(pixel_size, image_size)]
         # Following discussion with QD, I think the origin of the image array
         # is at the bottom left (as viewed by dials.image_viewer), with fast
