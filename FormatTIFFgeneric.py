@@ -3,9 +3,9 @@ detectors producing electron diffraction data"""
 
 from __future__ import annotations
 
-import io
 import os
 import re
+import warnings
 
 from dxtbx import flumpy
 from dxtbx.format.Format import Format
@@ -19,6 +19,25 @@ try:
     import tifffile
 except ImportError:
     tifffile = None
+
+
+def check_environment_variable(cls):
+    """Utility function to determine whether an expected environment variable
+    has been set to activate the use of a particular plugin class. If not, but
+    this function has been called, warn that the format class is not activated.
+    """
+
+    name = cls.__name__
+    var = cls.check_environment
+
+    if os.getenv(var) is None:
+        warnings.warn(
+            f"To use the the Format plugin {name} to read this image,"
+            f"the environment variable {var} must be set"
+        )
+        return False
+
+    return True
 
 
 class FormatTIFFgeneric(Format):
@@ -43,7 +62,6 @@ class FormatTIFFgeneric(Format):
         try:
             assert len(tif.pages) == 1
             assert len(tif.series) == 1
-            page = tif.pages[0]
         except (AssertionError, KeyError):
             return False
         finally:
@@ -91,19 +109,17 @@ class FormatTIFFgeneric_Merlin(FormatTIFFgeneric):
     containing a single 512x512 pixel image.
     """
 
-    @staticmethod
-    def understand(image_file):
-        """Check to see if this looks like a TIFF format image with a single page"""
+    check_environment = "QD_MERLIN_TIFF"
 
-        if os.getenv("QD_MERLIN_TIFF") is None:
-            return False
+    @classmethod
+    def understand(cls, image_file):
 
         with tifffile.TiffFile(image_file) as tif:
             page = tif.pages[0]
             if page.shape != (512, 512):
                 return False
 
-        return True
+        return check_environment_variable(cls)
 
     def _goniometer(self):
         """Dummy goniometer, 'vertical' as the images are viewed. Not completely
@@ -147,19 +163,17 @@ class FormatTIFFgeneric_Timepix512(FormatTIFFgeneric):
     containing a single 512x512 pixel image.
     """
 
-    @staticmethod
-    def understand(image_file):
-        """Check to see if this looks like a TIFF format image with a single page"""
+    check_environment = "TIMEPIX512_TIFF"
 
-        if os.getenv("TIMEPIX512_TIFF") is None:
-            return False
+    @classmethod
+    def understand(cls, image_file):
 
         with tifffile.TiffFile(image_file) as tif:
             page = tif.pages[0]
             if page.shape != (512, 512):
                 return False
 
-        return True
+        return check_environment_variable(cls)
 
     def _detector(self):
         """Dummy detector"""
@@ -168,13 +182,10 @@ class FormatTIFFgeneric_Timepix512(FormatTIFFgeneric):
         # 55 mu pixels
         pixel_size = 0.055, 0.055
         trusted_range = (-1, 65535)
-        material = "Si"
-        thickness = 0.3  # assume 300 mu thick. This is actually in the header too
-        # so could take it from there
+        thickness = 0.3  # assume 300 mu thick
 
         # Initialise detector frame - dummy origin to place detector at the header
         # distance along the canonical beam direction. Dummy distance
-        distance = 1000
         fast = matrix.col((1.0, 0.0, 0.0))
         slow = matrix.col((0.0, -1.0, 0.0))
         cntr = matrix.col((0.0, 0.0, -100.0))
@@ -319,19 +330,18 @@ class FormatTIFFgeneric_Timepix516(FormatTIFFgeneric):
     containing a single 516x516 pixel image.
     """
 
-    @staticmethod
-    def understand(image_file):
-        """Check to see if this looks like a TIFF format image with a single page"""
+    check_environment = "TIMEPIX516_TIFF"
 
-        if os.getenv("TIMEPIX516_TIFF") is None:
-            return False
+    @classmethod
+    def understand(cls, image_file):
+        """Check to see if this looks like a TIFF format image with a single page"""
 
         with tifffile.TiffFile(image_file) as tif:
             page = tif.pages[0]
             if page.shape != (516, 516):
                 return False
 
-        return True
+        return check_environment_variable(cls)
 
     def get_static_mask(self):
         """Return the static mask that excludes the central cross of pixels."""
@@ -390,7 +400,7 @@ class FormatTIFFgeneric_ASI(FormatTIFFgeneric):
             if page.shape != (516, 516):
                 return False
             ImageDescription = page.tags[270]
-            if not "ImageCameraName: timepix" in ImageDescription.value:
+            if "ImageCameraName: timepix" not in ImageDescription.value:
                 return False
 
         return True
@@ -442,7 +452,7 @@ class FormatTIFFgeneric_FEI_Tecnai_G2(FormatTIFFgeneric):
             if page.shape != (1024, 1024):
                 return False
             OlympusSIS = page.tags[33560]
-            if not "Veleta" in OlympusSIS.value["cameraname"]:
+            if "Veleta" not in OlympusSIS.value["cameraname"]:
                 return False
 
         return True
@@ -488,12 +498,15 @@ class FormatTIFFgeneric_Medipix(FormatTIFFgeneric):
     we will construct dummy objects and expect to override on import using
     site.phil.
 
-    WARNING: this format is not very specific and will pick up *any* TIFF file
+    WARNING: this format is not very specific so an environment variable,
+    MEDIPIX514_TIFF, must be set, otherwise this will pick up *any* TIFF file
     containing a single 514x514 pixel image.
     """
 
-    @staticmethod
-    def understand(image_file):
+    check_environment = "MEDIPIX514_TIFF"
+
+    @classmethod
+    def understand(cls, image_file):
         """Check to see if this looks like a TIFF format image with a single page"""
 
         with tifffile.TiffFile(image_file) as tif:
@@ -501,7 +514,7 @@ class FormatTIFFgeneric_Medipix(FormatTIFFgeneric):
             if page.shape != (514, 514):
                 return False
 
-        return True
+        return check_environment_variable(cls)
 
     def _goniometer(self):
         """Dummy goniometer, 'vertical' as the images are viewed. Not completely
@@ -540,17 +553,17 @@ class FormatTIFFgeneric_BlochwaveSim(FormatTIFFgeneric):
     and assumes 2048^2 pixels.
     """
 
-    @staticmethod
-    def understand(image_file):
-        if os.getenv("BLOCHWAVE_TIFF") is None:
-            return False
+    check_environment = "BLOCHWAVE_TIFF"
+
+    @classmethod
+    def understand(cls, image_file):
 
         with tifffile.TiffFile(image_file) as tif:
             page = tif.pages[0]
             if page.shape != (2048, 2048):
                 return False
 
-        return True
+        return check_environment_variable(cls)
 
     def _goniometer(self):
         return self._goniometer_factory.known_axis((1, 0, 0))
@@ -578,8 +591,11 @@ class FormatTIFFgeneric_BlochwaveSim(FormatTIFFgeneric):
 
 class FormatTIFF_UED(FormatTIFFgeneric, FormatStill):
     """An experimental image reading class for TIFF images from a UED
-    instrument. Most of this is probably incorrect.
+    instrument. Most of this is probably incorrect. Use environment variable
+    UED_TIFF to activate.
     """
+
+    check_environment = "UED_TIFF"
 
     def __init__(self, image_file, **kwargs):
 
@@ -588,8 +604,8 @@ class FormatTIFF_UED(FormatTIFFgeneric, FormatStill):
 
         return
 
-    @staticmethod
-    def understand(image_file):
+    @classmethod
+    def understand(cls, image_file):
         """Check to see if this looks like a TIFF format image with a single page"""
 
         with tifffile.TiffFile(image_file) as tif:
@@ -597,7 +613,7 @@ class FormatTIFF_UED(FormatTIFFgeneric, FormatStill):
             if page.shape != (1300, 1340):
                 return False
 
-        return True
+        return check_environment_variable(cls)
 
     def _beam(self):
         """Dummy beam, energy 200 keV"""
@@ -631,6 +647,8 @@ class FormatTIFF_UED_BNL(FormatTIFFgeneric, FormatStill):
     Set environment variable UED_BNL_TIFF to use.
     """
 
+    check_environment = "UED_BNL_TIFF"
+
     def __init__(self, image_file, **kwargs):
 
         FormatTIFFgeneric.__init__(self, image_file, **kwargs)
@@ -638,19 +656,16 @@ class FormatTIFF_UED_BNL(FormatTIFFgeneric, FormatStill):
 
         return
 
-    @staticmethod
-    def understand(image_file):
+    @classmethod
+    def understand(cls, image_file):
         """Check to see if this looks like a TIFF format image with a single page"""
-
-        if os.getenv("UED_BNL_TIFF") is None:
-            return False
 
         with tifffile.TiffFile(image_file) as tif:
             page = tif.pages[0]
             if page.shape != (512, 512):
                 return False
 
-        return True
+        return check_environment_variable(cls)
 
     def _beam(self):
         """Dummy beam, energy 200 keV"""
