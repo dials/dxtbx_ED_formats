@@ -2,18 +2,19 @@
 read metadata from the files are taken from from yamtbx by @keitaroyam. See
 https://github.com/keitaroyam/yamtbx/blob/master/dxtbx_formats/FormatEMD.py"""
 
-from __future__ import absolute_import, division, print_function
+from __future__ import annotations
 
-import os
-import h5py
 import json
-from scitbx.array_family import flex
+import os
+
+import h5py
 import numpy
+from dxtbx import IncorrectFormatError
 from dxtbx.format.Format import Format
 from dxtbx.format.FormatHDF5 import FormatHDF5
 from dxtbx.format.FormatMultiImage import FormatMultiImage
-from dxtbx import IncorrectFormatError
 from dxtbx.model.beam import Probe
+from scitbx.array_family import flex
 
 
 def get_metadata(metadata):
@@ -117,7 +118,7 @@ class FormatVelox(FormatHDF5):
         voltage = float(metadata[0]["Optics"]["AccelerationVoltage"])
         ret["wavelength"] = (
             h
-            / numpy.sqrt(2 * m0 * e * voltage * (1.0 + e * voltage / 2.0 / m0 / c ** 2))
+            / numpy.sqrt(2 * m0 * e * voltage * (1.0 + e * voltage / 2.0 / m0 / c**2))
             * 1.0e10
         )
 
@@ -177,10 +178,10 @@ class FormatVelox(FormatHDF5):
 
         if "ceta" in camera:
             gain = 26.0
-            saturation = 8000 * binning ** 2
+            saturation = 8000 * binning**2
         elif "falcon" in camera:
             gain = 1.0
-            saturation = 8000 * binning ** 2
+            saturation = 8000 * binning**2
         else:
             gain = 1.0
             saturation = 1e6

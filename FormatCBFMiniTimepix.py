@@ -18,14 +18,15 @@ data array for a moduleis 512*512 pixels and the wide pixels are excluded from
 the active region of the detector. The formats here recognise these cases
 based on the resulting data array size and act accordingly."""
 
-from __future__ import absolute_import, division, print_function
+from __future__ import annotations
+
 import os
 
 from dxtbx.format.FormatCBFMini import FormatCBFMini
-from dxtbx.model.detector import Detector
 from dxtbx.model import ScanFactory
-from scitbx.array_family import flex
 from dxtbx.model.beam import Probe
+from dxtbx.model.detector import Detector
+from scitbx.array_family import flex
 
 
 class FormatCBFMiniTimepix(FormatCBFMini):

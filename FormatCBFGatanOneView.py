@@ -8,7 +8,7 @@
 #  https://github.com/cctbx/cctbx_project/blob/master/dxtbx/license.txt
 #
 
-from __future__ import absolute_import, division, print_function
+from __future__ import annotations
 
 import os
 
@@ -149,8 +149,9 @@ class FormatCBFGatanOneView(FormatCBF):
         return ScanFactory.make_scan((index, index), 0.0, (0, 1), {index: 0})
 
     def read_cbf_image(self, cbf_image):
-        from cbflib_adaptbx import uncompress
         import binascii
+
+        from cbflib_adaptbx import uncompress
 
         start_tag = binascii.unhexlify("0c1a04d5")
 

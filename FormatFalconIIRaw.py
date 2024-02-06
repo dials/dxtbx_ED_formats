@@ -10,14 +10,14 @@
 """Experimental implementation of a format class to recognise raw images
 from an FEI Falcon II detector"""
 
-from __future__ import absolute_import, division, print_function
+from __future__ import annotations
 
 import os
 
 from dxtbx.format.Format import Format
 from dxtbx.model import ScanFactory
-from dxtbx.model.detector import Detector
 from dxtbx.model.beam import Probe
+from dxtbx.model.detector import Detector
 
 
 class FormatFalconIIRaw(Format):

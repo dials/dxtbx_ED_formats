@@ -3,7 +3,7 @@ ThermoFisher Falcon III detector that have been converted to SMV with useful
 metadata. We want to override the beam model to produce an unpolarised beam
 and to set the detector gain to something sensible"""
 
-from __future__ import absolute_import, division, print_function
+from __future__ import annotations
 
 from dxtbx.format.FormatSMVADSC import FormatSMVADSC
 from dxtbx.model.beam import Probe

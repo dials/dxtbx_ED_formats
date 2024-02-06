@@ -1,23 +1,19 @@
 """Experimental implementation of a format class to recognise images in TIFF
 format recorded on an electron microscope with a Direct Electron (DE) detector."""
 
-from __future__ import absolute_import, division, print_function
+from __future__ import annotations
 
-import os
 import io
-from PIL import Image
-from dxtbx.format.FormatTIFF import FormatTIFF
-from dxtbx.format.FormatTIFFHelpers import read_basic_tiff_header
-from dxtbx.format.FormatTIFFHelpers import BIG_ENDIAN
-from dxtbx.model import ScanFactory
+import os
+
 from boost.python import streambuf
-from scitbx.array_family import flex
-from dxtbx.ext import (
-    read_uint8,
-    read_uint16,
-    read_uint16_bs,
-)
+from dxtbx.ext import read_uint8, read_uint16, read_uint16_bs
+from dxtbx.format.FormatTIFF import FormatTIFF
+from dxtbx.format.FormatTIFFHelpers import BIG_ENDIAN, read_basic_tiff_header
+from dxtbx.model import ScanFactory
 from dxtbx.model.beam import Probe
+from PIL import Image
+from scitbx.array_family import flex
 
 
 class FormatTIFF_DE(FormatTIFF):

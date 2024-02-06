@@ -3,7 +3,8 @@ in rolling shutter mode that have been converted to SMV with useful metadata. We
 want to override the beam model to produce an unpolarised beam and to set the
 detector gain to something sensible"""
 
-from __future__ import absolute_import, division, print_function
+from __future__ import annotations
+
 import os
 
 from dxtbx.format.FormatSMVADSC import FormatSMVADSC
@@ -39,7 +40,7 @@ class FormatSMVCetaD_TUI(FormatSMVADSC):
         # according to Thermo Fisher
         binning = {"1x1": 1, "2x2": 2}.get(self._header_dictionary.get("BIN"), 1)
         gain = float(self._header_dictionary.get("GAIN", 26.0))
-        saturation = 8000 * binning ** 2
+        saturation = 8000 * binning**2
         trusted_range = (-1000, saturation)
         pedestal = float(self._header_dictionary.get("IMAGE_PEDESTAL", 0))
 

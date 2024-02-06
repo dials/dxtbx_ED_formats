@@ -1,7 +1,8 @@
 """Experimental format class for miniCBF files from an ELDICO diffractometer,
 which uses a DECTRIS QUADRO detector (EIGER technology)"""
 
-from __future__ import absolute_import, division, print_function
+from __future__ import annotations
+
 import os
 
 from dxtbx.format.FormatCBFMiniEiger import FormatCBFMiniEiger
@@ -37,7 +38,7 @@ class FormatCBFMiniEigerQuadro(FormatCBFMiniEiger):
         """Axis as determined by a single run of dials.find_rotation_axis, so
         probably not exact"""
 
-        return self._goniometer_factory.known_axis((-0.0540788,0.998537,0))
+        return self._goniometer_factory.known_axis((-0.0540788, 0.998537, 0))
 
     def _beam(self):
         """Ensure an unpolarised beam"""
@@ -129,6 +130,3 @@ class FormatCBFMiniEigerQuadro(FormatCBFMiniEiger):
             panel.set_mu(1e10)
 
         return detector
-
-
-

@@ -13,14 +13,14 @@ This is intended specifically for processing of the Trypsin datasets available
 at https://data.sbgrid.org/dataset/288/, but could be adapted for other
 datasets produced in a similar manner."""
 
-from __future__ import absolute_import, division, print_function
+from __future__ import annotations
 
 import os
 import time
 
 from dxtbx.format.FormatSMVADSC import FormatSMVADSC
-from dxtbx.model.detector import Detector
 from dxtbx.model.beam import Probe
+from dxtbx.model.detector import Detector
 
 
 class FormatSMV_TVIPS(FormatSMVADSC):
@@ -81,7 +81,7 @@ class FormatSMV_TVIPS(FormatSMVADSC):
     def _detector(self):
         pixel_size = 0.0311999992, 0.0311999992
         image_size = 2048, 2048
-        trusted_range = (-1, 65535) # Unsure what is correct here
+        trusted_range = (-1, 65535)  # Unsure what is correct here
         gain = 5  # As suggested for processing with MOSFLM - unsure how right this is
         distance = float(self._header_dictionary["DISTANCE"])
         beam_x = float(self._header_dictionary["BEAM_CENTER_X"])

@@ -1,15 +1,14 @@
 #!/usr/bin/env python
 # FormatSEReBICpedestal.py
 
+from __future__ import annotations
+
 # Experimental format for TIA .ser files used by FEI microscope at eBIC. This
 # version adds a pedestal level to the image data as determined by the
 # environment variable ADD_PEDESTAL. A warning will be issued to counter
 # against the use of this format by mistake
-
-from __future__ import absolute_import, division, print_function
-
-import os
 import logging
+import os
 
 from dxtbx.format.FormatSEReBIC import FormatSEReBIC
 from dxtbx.model.beam import Probe
