@@ -3,8 +3,6 @@ which uses a DECTRIS QUADRO detector (EIGER technology)"""
 
 from __future__ import annotations
 
-import os
-
 from dxtbx.format.FormatCBFMiniEiger import FormatCBFMiniEiger
 from dxtbx.model import SimplePxMmStrategy
 from dxtbx.model.beam import Probe
@@ -62,8 +60,6 @@ class FormatCBFMiniEigerQuadro(FormatCBFMiniEiger):
             .replace(",", "")
             .split()[:2]
         )
-
-        wavelength = float(self._cif_header_dictionary["Wavelength"].split()[0])
 
         beam_x, beam_y = map(float, beam_xy)
 

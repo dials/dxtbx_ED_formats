@@ -10,7 +10,6 @@ from dxtbx.format.Format import Format
 from dxtbx.format.FormatMultiImage import FormatMultiImage
 from dxtbx.model import ScanFactory
 from dxtbx.model.beam import Probe
-from dxtbx.model.detector import Detector
 from scitbx.array_family import flex
 
 
@@ -122,7 +121,7 @@ def processedMib(mib_prop):
     )
 
     # generate offset in bytes
-    offset = mib_prop.offset * merlin_frame_dtype.itemsize
+    # offset = mib_prop.offset * merlin_frame_dtype.itemsize
 
     # map the file to memory, if a numpy or memmap array is given, work with it as with a buffer
     if type(mib_prop.path) == str:
@@ -292,7 +291,7 @@ class FormatMIBstack(FormatMultiImage, FormatMIB):
         return Format.get_beam(self)
 
     def get_scan(self, index=None):
-        if index == None:
+        if index is None:
             return Format.get_scan(self)
         else:
             scan = Format.get_scan(self)

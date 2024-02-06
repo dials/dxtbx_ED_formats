@@ -125,18 +125,18 @@ class FormatCBFMiniTimepix(FormatCBFMini):
         # 55 mu pixels
         pixel_size = 0.055, 0.055
         trusted_range = (0, 65535)
-        material = "Si"
         thickness = 0.3  # assume 300 mu thick. This is actually in the header too
         # so could take it from there
 
         # Initialise detector frame - dummy origin to place detector at the header
         # distance along the canonical beam direction
-        distance = (
-            float(self._cif_header_dictionary["Detector_distance"].split()[0]) * 1000
+        distance = max(
+            float(self._cif_header_dictionary["Detector_distance"].split()[0]) * 1000,
+            1.0,
         )
         fast = matrix.col((1.0, 0.0, 0.0))
         slow = matrix.col((0.0, -1.0, 0.0))
-        cntr = matrix.col((0.0, 0.0, -100.0))
+        cntr = matrix.col((0.0, 0.0, -1 * distance))
 
         # shifts to go from the centre to the origin
         off_x = (self._array_size[0] / 2) * pixel_size[0]
@@ -237,18 +237,18 @@ class FormatCBFMiniTimepix512(FormatCBFMiniTimepix):
         # 55 mu pixels
         pixel_size = 0.055, 0.055
         trusted_range = (-1, 65535)
-        material = "Si"
         thickness = 0.3  # assume 300 mu thick. This is actually in the header too
         # so could take it from there
 
         # Initialise detector frame - dummy origin to place detector at the header
         # distance along the canonical beam direction
-        distance = (
-            float(self._cif_header_dictionary["Detector_distance"].split()[0]) * 1000
+        distance = max(
+            float(self._cif_header_dictionary["Detector_distance"].split()[0]) * 1000,
+            1.0,
         )
         fast = matrix.col((1.0, 0.0, 0.0))
         slow = matrix.col((0.0, -1.0, 0.0))
-        cntr = matrix.col((0.0, 0.0, -100.0))
+        cntr = matrix.col((0.0, 0.0, -1 * distance))
 
         # shifts to go from the centre to the origin - outer pixels are 0.165 mm
         off_x = (self._array_size[0] / 2 - 2) * pixel_size[0]
@@ -387,18 +387,18 @@ class FormatCBFMiniTimepix1032(FormatCBFMiniTimepix):
         # 55 mu pixels
         pixel_size = 0.055, 0.055
         trusted_range = (-1, 65535)
-        material = "Si"
         thickness = 0.3  # assume 300 mu thick. This is actually in the header too
         # so could take it from there
 
         # Initialise detector frame - dummy origin to place detector at the header
         # distance along the canonical beam direction
-        distance = (
-            float(self._cif_header_dictionary["Detector_distance"].split()[0]) * 1000
+        distance = max(
+            float(self._cif_header_dictionary["Detector_distance"].split()[0]) * 1000,
+            1.0,
         )
         fast = matrix.col((1.0, 0.0, 0.0))
         slow = matrix.col((0.0, -1.0, 0.0))
-        cntr = matrix.col((0.0, 0.0, -100.0))
+        cntr = matrix.col((0.0, 0.0, -1 * distance))
 
         # shifts to go from the centre to the origin
         off_x = (self._array_size[0] / 2) * pixel_size[0]

@@ -5,7 +5,6 @@ https://github.com/keitaroyam/yamtbx/blob/master/dxtbx_formats/FormatEMD.py"""
 from __future__ import annotations
 
 import json
-import os
 
 import h5py
 import numpy
@@ -117,9 +116,9 @@ class FormatVelox(FormatHDF5):
         h, m0, e, c = 6.62607004e-34, 9.10938356e-31, 1.6021766208e-19, 299792458.0
         voltage = float(metadata[0]["Optics"]["AccelerationVoltage"])
         ret["wavelength"] = (
-            h
+            1.0e10
+            * h
             / numpy.sqrt(2 * m0 * e * voltage * (1.0 + e * voltage / 2.0 / m0 / c**2))
-            * 1.0e10
         )
 
         return ret
@@ -227,7 +226,7 @@ class FormatVelox(FormatHDF5):
         return Format.get_beam(self)
 
     def get_scan(self, index=None):
-        if index == None:
+        if index is None:
             return Format.get_scan(self)
         else:
             scan = Format.get_scan(self)

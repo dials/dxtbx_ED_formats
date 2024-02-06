@@ -30,7 +30,7 @@ class FormatSMV4DSTEM(FormatSMVADSC):
             float(self._header_dictionary["SIZE2"]),
         )
         # Assume GAIN=1 as counting
-        binning = {"1x1": 1, "2x2": 2}.get(self._header_dictionary.get("BIN"), 1)
+        # binning = {"1x1": 1, "2x2": 2}.get(self._header_dictionary.get("BIN"), 1)
         gain = 1.0
         saturation = 65535  # ?
         trusted_range = (0, saturation)

@@ -16,11 +16,9 @@ datasets produced in a similar manner."""
 from __future__ import annotations
 
 import os
-import time
 
 from dxtbx.format.FormatSMVADSC import FormatSMVADSC
 from dxtbx.model.beam import Probe
-from dxtbx.model.detector import Detector
 
 
 class FormatSMV_TVIPS(FormatSMVADSC):

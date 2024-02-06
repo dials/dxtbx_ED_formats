@@ -55,7 +55,7 @@ class FormatTIFF_DE(FormatTIFF):
             else:
                 read_pixel = read_uint16
         else:
-            from dxtbx.ext import read_uint8 as read_pixel
+            read_pixel = read_uint8
 
         im = Image.open(self._image_file)
         raw_data = read_pixel(streambuf(io.BytesIO(im.tobytes())), 4096 * 4096)

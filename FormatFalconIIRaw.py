@@ -17,7 +17,6 @@ import os
 from dxtbx.format.Format import Format
 from dxtbx.model import ScanFactory
 from dxtbx.model.beam import Probe
-from dxtbx.model.detector import Detector
 
 
 class FormatFalconIIRaw(Format):
@@ -33,7 +32,6 @@ class FormatFalconIIRaw(Format):
             if os.fstat(f.fileno()).st_size != 8388785:
                 return False
             header = f.read(177)
-            data = f.read()
 
         if header != (
             "FEI RawImage\x00\x01\x00\x00\x00\x00\x08\x00\x00\x00\x08"

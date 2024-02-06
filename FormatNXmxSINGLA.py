@@ -1,18 +1,11 @@
 from __future__ import annotations
 
-import math
-
 import dxtbx.nexus
 import h5py
 import nxmx
 from dxtbx.format.FormatNXmx import FormatNXmx
-from dxtbx.masking import (
-    GoniometerMaskerFactory,
-    mask_untrusted_circle,
-    mask_untrusted_polygon,
-)
+from dxtbx.masking import mask_untrusted_circle, mask_untrusted_polygon
 from dxtbx.model.beam import Probe
-from libtbx import Auto
 from scitbx.array_family import flex
 
 
@@ -74,10 +67,8 @@ class FormatNXmxSINGLA(FormatNXmx):
 
         with h5py.File(self._image_file, swmr=True) as fh:
             nxmx_obj = nxmx.NXmx(fh)
-            nxsample = nxmx_obj.entries[0].samples[0]
             nxinstrument = nxmx_obj.entries[0].instruments[0]
             nxdetector = nxinstrument.detectors[0]
-            nxbeam = nxinstrument.beams[0]
 
             # There is a bug that leads to data_size being reversed. Check this
             # file is correct
@@ -134,7 +125,6 @@ class FormatNXmxSINGLA(FormatNXmx):
 
         pixel_size = self._pixel_size
         image_size = self._image_size
-        dyn_range = self._bit_depth_readout
         trusted_range = (0, self._saturation_value)
         beam_centre = [(p * i) / 2 for p, i in zip(pixel_size, image_size)]
         d = self._detector_factory.simple(

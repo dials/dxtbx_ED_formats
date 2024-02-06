@@ -68,8 +68,6 @@ class FormatCBFJungfrauVIE01(FormatCBF):
 
         distance = float(self._header_dictionary["Detector_distance"].split()[0])
 
-        wavelength = float(self._header_dictionary["Wavelength"].split()[0])
-
         nx = int(self._header_dictionary["X-Binary-Size-Fastest-Dimension"])
         ny = int(self._header_dictionary["X-Binary-Size-Second-Dimension"])
 

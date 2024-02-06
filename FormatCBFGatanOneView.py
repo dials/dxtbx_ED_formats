@@ -88,8 +88,6 @@ class FormatCBFGatanOneView(FormatCBF):
             .split()[:2]
         )
 
-        wavelength = float(self._cif_header_dictionary["Wavelength"].split()[0])
-
         beam_x, beam_y = map(float, beam_xy)
 
         pixel_xy = (
