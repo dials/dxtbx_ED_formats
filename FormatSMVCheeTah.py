@@ -9,6 +9,7 @@ import os
 import time
 
 from dxtbx.format.FormatSMVADSC import FormatSMVADSC
+from dxtbx.model import SimplePxMmStrategy
 from dxtbx.model.beam import Probe
 from dxtbx.model.detector import Detector
 from iotbx.detectors import SMVImage
@@ -234,8 +235,10 @@ class FormatSMVCheeTahT3(FormatSMVADSC):
             p.set_pixel_size((pixel_size[0], pixel_size[1]))
             p.set_thickness(thickness)
             p.set_material("Si")
-            # p.set_mu(mu)
-            # p.set_px_mm_strategy(ParallaxCorrectedPxMmStrategy(mu, t0))
+            # Parallax and QE corrections are effectively disabled by setting
+            # the simple pixel-to-millimetre strategy and a very high mu value.
+            p.set_px_mm_strategy(SimplePxMmStrategy())
+            p.set_mu(1e10)
             p.set_local_frame(fast.elems, slow.elems, origin_panel.elems)
             p.set_raw_image_offset((xmin, ymin))
             self.coords[panel_name] = (xmin, ymin, xmax, ymax)
