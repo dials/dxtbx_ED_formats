@@ -861,3 +861,56 @@ class FormatTIFF_UED_BNL(FormatTIFFgeneric, FormatStill):
             "CCD", 3480, beam_centre, "+x", "-y", pixel_size, image_size, trusted_range
         )
         return d
+
+
+class FormatTIFFgeneric_GatanK3(FormatTIFFgeneric):
+    """An experimental image reading class for TIFF images from a Gatan
+    K3 detector.
+
+    WARNING: this format is not very specific so an environment variable,
+    GATANK3_TIFF, must be set, otherwise this will pick up *any* TIFF file
+    containing a single 512x512 pixel image.
+    """
+
+    check_environment = "GATANK3_TIFF"
+
+    @classmethod
+    def understand(cls, image_file):
+
+        with tifffile.TiffFile(image_file) as tif:
+            page = tif.pages[0]
+            if page.shape != (1500, 1500):
+                return False
+
+        return check_environment_variable(cls)
+
+    def _goniometer(self):
+        """Dummy goniometer, 'vertical' as the images are viewed. Not completely
+        sure about the handedness yet"""
+
+        return self._goniometer_factory.known_axis((0, 1, 0))
+
+    def _beam(self):
+        """Dummy beam, energy 200 keV"""
+
+        wavelength = 0.02508
+        return self._beam_factory.make_polarized_beam(
+            sample_to_source=(0.0, 0.0, 1.0),
+            wavelength=wavelength,
+            polarization=(0, 1, 0),
+            polarization_fraction=0.5,
+            probe=Probe.electron,
+        )
+
+    def _detector(self):
+        """Dummy detector"""
+
+        pixel_size = 0.005, 0.005
+        image_size = (1500, 1500)
+        dyn_range = 20
+        trusted_range = (0, 2**dyn_range - 1)
+        beam_centre = [(p * i) / 2 for p, i in zip(pixel_size, image_size)]
+        d = self._detector_factory.simple(
+            "PAD", 2440, beam_centre, "+x", "-y", pixel_size, image_size, trusted_range
+        )
+        return d
