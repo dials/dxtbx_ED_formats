@@ -40,17 +40,17 @@ repos:
     files: \.pyi?$|SConscript$|^libtbx_config$
     types: [file]
 
+- repo: https://github.com/astral-sh/ruff-pre-commit
+  rev: v0.11.4
+  hooks:
+    - id: ruff
+      args: [--fix, --exit-non-zero-on-fix, --show-fixes]
+    - id: ruff-format
+      files: \.pyi?$|SConscript$|^libtbx_config$
+      types: [file]
+
 - repo: https://github.com/pre-commit/mirrors-clang-format
   rev: v13.0.1
   hooks:
   - id: clang-format
     files: \.c(c|pp|xx)?$|\.h(pp)?$
-
-# Linting
-- repo: https://github.com/PyCQA/flake8
-  rev: 4.0.1
-  hooks:
-  - id: flake8
-    args: ['--ignore=E501,E203,W503']
-    additional_dependencies: ['flake8-comprehensions==3.8.0']
-
