@@ -113,7 +113,6 @@ class FormatTIFFgeneric_Merlin(FormatTIFFgeneric):
 
     @classmethod
     def understand(cls, image_file):
-
         with tifffile.TiffFile(image_file) as tif:
             page = tif.pages[0]
             if page.shape != (512, 512):
@@ -167,7 +166,6 @@ class FormatTIFFgeneric_Timepix512(FormatTIFFgeneric):
 
     @classmethod
     def understand(cls, image_file):
-
         with tifffile.TiffFile(image_file) as tif:
             page = tif.pages[0]
             if page.shape != (512, 512):
@@ -306,7 +304,6 @@ class FormatTIFFgeneric_Timepix512(FormatTIFFgeneric):
         )
 
     def get_raw_data(self):
-
         raw_data = tifffile.imread(self._image_file)
         raw_data = flumpy.from_numpy(raw_data.astype(float))
         raw_data.reshape(flex.grid(self._array_size[1], self._array_size[0]))
@@ -395,7 +392,6 @@ class FormatTIFFgeneric_ASI(FormatTIFFgeneric):
         an expected string in the ImageDescription tag"""
 
         with tifffile.TiffFile(image_file) as tif:
-
             page = tif.pages[0]
             if page.shape != (516, 516):
                 return False
@@ -447,7 +443,6 @@ class FormatTIFFgeneric_FEI_Tecnai_G2(FormatTIFFgeneric):
         an expected string in the ImageDescription tag"""
 
         with tifffile.TiffFile(image_file) as tif:
-
             page = tif.pages[0]
             if page.shape != (1024, 1024):
                 return False
@@ -506,7 +501,6 @@ class FormatTIFFgeneric_Medipix512(FormatTIFFgeneric):
 
     @classmethod
     def understand(cls, image_file):
-
         with tifffile.TiffFile(image_file) as tif:
             page = tif.pages[0]
             if page.shape != (512, 512):
@@ -645,7 +639,6 @@ class FormatTIFFgeneric_Medipix512(FormatTIFFgeneric):
         )
 
     def get_raw_data(self):
-
         raw_data = tifffile.imread(self._image_file)
         raw_data = flumpy.from_numpy(raw_data.astype(float))
         raw_data.reshape(flex.grid(self._array_size[1], self._array_size[0]))
@@ -710,7 +703,71 @@ class FormatTIFFgeneric_Medipix514(FormatTIFFgeneric):
         pixel_size = 0.055, 0.055
         image_size = (514, 514)
         dyn_range = 16
-        trusted_range = (-1, 2**dyn_range - 1)
+        trusted_range = (
+            -1,
+            2**dyn_range - 2,
+        )  # use max of the dynamic range as a mask value
+        beam_centre = [(p * i) / 2 for p, i in zip(pixel_size, image_size)]
+        d = self._detector_factory.simple(
+            "PAD", 2440, beam_centre, "+x", "-y", pixel_size, image_size, trusted_range
+        )
+        return d
+
+
+class FormatTIFFgeneric_Medipix516(FormatTIFFgeneric):
+    """An experimental image reading class for TIFF images from a Medipix
+    detector which have been converted to 16 bits, have 516*516 pixels and
+    have geometry and flat field corrections applied.
+
+    The header does not contain useful information about the geometry, therefore
+    we will construct dummy objects and expect to override on import using
+    site.phil.
+
+    WARNING: this format is not very specific so an environment variable,
+    MEDIPIX516_TIFF, must be set, otherwise this will pick up *any* TIFF file
+    containing a single 516x516 pixel image.
+    """
+
+    check_environment = "MEDIPIX516_TIFF"
+
+    @classmethod
+    def understand(cls, image_file):
+        """Check to see if this looks like a TIFF format image with a single page"""
+
+        with tifffile.TiffFile(image_file) as tif:
+            page = tif.pages[0]
+            if page.shape != (516, 516):
+                return False
+
+        return check_environment_variable(cls)
+
+    def _goniometer(self):
+        """Dummy goniometer, 'vertical' as the images are viewed. Not completely
+        sure about the handedness yet"""
+
+        return self._goniometer_factory.known_axis((0, 1, 0))
+
+    def _beam(self):
+        """Dummy beam, energy 200 keV"""
+
+        wavelength = 0.02508
+        return self._beam_factory.make_polarized_beam(
+            sample_to_source=(0.0, 0.0, 1.0),
+            wavelength=wavelength,
+            polarization=(0, 1, 0),
+            polarization_fraction=0.5,
+        )
+
+    def _detector(self):
+        """Dummy detector"""
+
+        pixel_size = 0.055, 0.055
+        image_size = (516, 516)
+        dyn_range = 16
+        trusted_range = (
+            -1,
+            2**dyn_range - 2,
+        )  # use max of the dynamic range as a mask value
         beam_centre = [(p * i) / 2 for p, i in zip(pixel_size, image_size)]
         d = self._detector_factory.simple(
             "PAD", 2440, beam_centre, "+x", "-y", pixel_size, image_size, trusted_range
@@ -728,7 +785,6 @@ class FormatTIFFgeneric_BlochwaveSim(FormatTIFFgeneric):
 
     @classmethod
     def understand(cls, image_file):
-
         with tifffile.TiffFile(image_file) as tif:
             page = tif.pages[0]
             if page.shape != (2048, 2048):
@@ -769,7 +825,6 @@ class FormatTIFF_UED(FormatTIFFgeneric, FormatStill):
     check_environment = "UED_TIFF"
 
     def __init__(self, image_file, **kwargs):
-
         FormatTIFFgeneric.__init__(self, image_file, **kwargs)
         FormatStill.__init__(self, image_file, **kwargs)
 
@@ -821,7 +876,6 @@ class FormatTIFF_UED_BNL(FormatTIFFgeneric, FormatStill):
     check_environment = "UED_BNL_TIFF"
 
     def __init__(self, image_file, **kwargs):
-
         FormatTIFFgeneric.__init__(self, image_file, **kwargs)
         FormatStill.__init__(self, image_file, **kwargs)
 
@@ -876,7 +930,6 @@ class FormatTIFFgeneric_GatanK3(FormatTIFFgeneric):
 
     @classmethod
     def understand(cls, image_file):
-
         with tifffile.TiffFile(image_file) as tif:
             page = tif.pages[0]
             if page.shape != (1500, 1500):
