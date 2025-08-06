@@ -695,6 +695,7 @@ class FormatTIFFgeneric_Medipix514(FormatTIFFgeneric):
             wavelength=wavelength,
             polarization=(0, 1, 0),
             polarization_fraction=0.5,
+            probe=Probe.electron,
         )
 
     def _detector(self):
@@ -756,6 +757,7 @@ class FormatTIFFgeneric_Medipix516(FormatTIFFgeneric):
             wavelength=wavelength,
             polarization=(0, 1, 0),
             polarization_fraction=0.5,
+            probe=Probe.electron,
         )
 
     def _detector(self):
@@ -802,6 +804,7 @@ class FormatTIFFgeneric_BlochwaveSim(FormatTIFFgeneric):
             wavelength=wavelength,
             polarization=(0, 1, 0),
             polarization_fraction=0.5,
+            probe=Probe.electron,
         )
 
     def _detector(self):
@@ -850,6 +853,7 @@ class FormatTIFF_UED(FormatTIFFgeneric, FormatStill):
             wavelength=wavelength,
             polarization=(0, 1, 0),
             polarization_fraction=0.5,
+            probe=Probe.electron,
         )
 
     def _detector(self):
@@ -901,6 +905,7 @@ class FormatTIFF_UED_BNL(FormatTIFFgeneric, FormatStill):
             wavelength=wavelength,
             polarization=(0, 1, 0),
             polarization_fraction=0.5,
+            probe=Probe.electron,
         )
 
     def _detector(self):
