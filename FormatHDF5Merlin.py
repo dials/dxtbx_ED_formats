@@ -45,16 +45,10 @@ class FormatHDF5Merlin(FormatHDF5):
             image_range, exposure, oscillation, epochs, deg=True
         )
 
-    def _goniometer(self):
-        """Dummy goniometer, 'vertical' as the images are viewed. Not completely
-        sure about the handedness yet"""
-
-        return self._goniometer_factory.known_axis((0, -1, 0))
-
     def _beam(self):
-        """Dummy unpolarized beam, energy 200 keV"""
+        """Dummy unpolarized beam, energy 300 keV"""
 
-        wavelength = 0.02508
+        wavelength = 0.0197
         return self._beam_factory.make_polarized_beam(
             sample_to_source=(0.0, 0.0, 1.0),
             wavelength=wavelength,
