@@ -30,10 +30,10 @@ class FormatHDF5Merlin(FormatHDF5):
 
     def _scan(self):
         """Scan model for this stack, filling out any unavailable items with
-        dummy values"""
+        dummy values. Set oscillation to 0.0, as these are still images."""
 
         alpha = 0.0
-        dalpha = 1.0
+        dalpha = 0.0
         exposure = 0.0
 
         oscillation = (alpha, dalpha)
@@ -72,6 +72,14 @@ class FormatHDF5Merlin(FormatHDF5):
             "PAD", 1348, beam_centre, "+x", "+y", pixel_size, image_size, trusted_range
         )
         return d
+
+    def _goniometer(self):
+        """Dummy goniometer. These are still images, so the goniometer has no
+        practical effect on processing. However some tools, such as dials.show
+        appear to need a model here. A way around that would be to inherit from
+        FormatStill, but it seems this is incompatible with FormatMultiImage."""
+
+        return self._goniometer_factory.known_axis((0, 1, 0))
 
     def get_raw_data(self, index):
         if index is None:
